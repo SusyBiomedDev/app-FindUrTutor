@@ -1,38 +1,52 @@
-// src/screens/HomeScreen.tsx
-// Main landing screen — displays a welcome message
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import AppHeader from '../components/AppHeader';
-import AppFooter from '../components/AppFooter';
-import { globalStyles, COLORS, FONTS }
-from '../styles/globalStyles';
-const HomeScreen = ({ navigation }: any) => (
-<View style={globalStyles.screen}>
-<AppHeader title="Home" navigation={navigation}
-/>
-<View style={globalStyles.centeredContainer}>
-<Text style={styles.greeting}>Hello
-World!</Text>
-<Text style={styles.subtitle}>
-Welcome to our page!
-</Text>
-</View>
-<AppFooter
-navigation={navigation}
-activeScreen="Home"
-/>
-</View>
-);
+import { View, StyleSheet, TextInput } from 'react-native';
+import { AppHeader } from '../components/AppHeader';
+import { LocationSwitch } from '../components/LocationSwitch';
+import AppNavigator  from '../navigation/AppNavigator';
+
+const HomeScreen = () => {
+  return (
+    <View style={styles.container}>
+      <AppHeader />
+      
+      {/* Barra de Busca */}
+      <View style={styles.searchBar}>
+        <TextInput placeholder="Search..." style={styles.input} />
+      </View>
+
+      {/* Barra de Filtro */}
+      <View style={styles.filterBar}>
+        <TextInput placeholder="Location" style={styles.input} />
+      </View>
+
+      <LocationSwitch />        
+      
+    </View>
+
+
+  );
+};
+
 const styles = StyleSheet.create({
-greeting: {
-fontSize: 32,
-fontFamily: FONTS.bold,
-color: COLORS.text,
-},
-subtitle: {
-fontSize: FONTS.size.body,
-color: COLORS.textLight,
-marginTop: 8,
-},
+  container: { flex: 1, padding: 20, backgroundColor: '#e0e0e0' },
+  searchBar: {
+    backgroundColor: '#f3e8ff',
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    marginVertical: 10,
+    height: 50,
+    justifyContent: 'center'
+  },
+  filterBar: {
+    backgroundColor: '#f3e8ff',
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    marginVertical: 10,
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  input: { flex: 1 }
 });
+
 export default HomeScreen;
