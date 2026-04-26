@@ -25,7 +25,7 @@ export const globalStyles = StyleSheet.create({
 
     screen: { // <--- Vê se este nome está igual ao que usas no ecrã
     flex: 1,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: '#ffffff',
     },
 
   bottomTabBar: {
@@ -35,7 +35,7 @@ export const globalStyles = StyleSheet.create({
     right: 20,
     elevation: 10,           // Prioridade no Android
     zIndex: 100,            
-    backgroundColor: '#ffffff',
+    backgroundColor: '#d7cbcb',
     borderRadius: 25,
     height: 65,
     borderTopWidth: 0,       // Remove a linha cinzenta padrão
@@ -51,11 +51,11 @@ export const globalStyles = StyleSheet.create({
   tabBar: {
     // Estas propriedades criam o efeito "pílula" flutuante
     position: 'absolute',
-    bottom: 20,          // Distância do fundo
-    left: 20,            // Margem esquerda
-    right: 20,           // Margem direita
+    bottom: 40,          // Distância do fundo
+    left: 10,            // Margem esquerda
+    right: 10,           // Margem direita
     height: 65,          // Altura da barra
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#753e71',
     borderRadius: 80,    // Valor alto para ser totalmente arredondado
     
     // Alinhamento dos itens

@@ -1,6 +1,6 @@
 import React from 'react'; // Mantém apenas este
 import { NavigationContainer } from '@react-navigation/native';
-import AppNavigator from './android/app/src/navigation/AppNavigator';
+import AppNavigator from './src/navigation/AppNavigator';
 
 
 export default function App() {
@@ -10,3 +10,4 @@ export default function App() {
     </NavigationContainer>
   );
 }
+

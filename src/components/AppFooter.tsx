@@ -12,8 +12,6 @@ activeScreen: string;
 const AppFooter: React.FC<FooterProps> = ({ navigation, activeScreen }) => {
 const tabs = [
 { name: 'Home', icon: 'home', screen: 'Home' },
-{ name: 'Contacts', icon: 'contacts', screen: 'Contacts' },
-{ name: 'Gallery', icon: 'image', screen: 'Gallery' },
 ];
 return (
 <SafeAreaView edges={['bottom']} style={styles.safeArea}>
@@ -53,7 +51,7 @@ justifyContent: 'space-around',
 alignItems: 'center',
 borderTopWidth: 1,
 borderTopColor: COLORS.primaryDark,
-elevation: 8,
+elevation: 10,
 },
 tab: {
 alignItems: 'center',

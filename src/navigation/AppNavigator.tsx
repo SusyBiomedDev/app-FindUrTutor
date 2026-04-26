@@ -2,38 +2,38 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View, Text, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-// Importa os teus ecrãs reais
 import HomeScreen from '../screens/HomeScreen';
-import TableScreen from '../screens/TableScreen';
+import HomeStack from '../screens/HomeStack'; 
 
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#4A4459',   // Cor do ícone selecionado
-        tabBarInactiveTintColor: '#49454F', // Cor do ícone inativo
+        tabBarInactiveTintColor: '#ffffff', // Cor do ícone inativo
         tabBarStyle: styles.tabBar,         // O estilo da barra branca
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
       <Tab.Screen 
-        name="Definitions" 
+        name="Home" 
         component={HomeScreen} 
         options={{
-          tabBarIcon: ({ color }) => <Icon name="cog-outline" color={color} size={26} />,
+          tabBarIcon: ({ color }) => <Icon name="home-outline" color={color} size={26} />,
         }}
       />
       <Tab.Screen 
         name="Saved" 
-        component={TableScreen} 
-        options={{
+        component={HomeStack} 
+        options={{ 
           tabBarIcon: ({ color }) => <Icon name="bookmark-outline" color={color} size={26} />,
         }}
       />
+     
       <Tab.Screen 
         name="Notifications" 
         component={HomeScreen} 
@@ -45,18 +45,20 @@ export default function AppNavigator() {
   );
 }
 
+
 const styles = StyleSheet.create({
   tabBar: {
     // ESTE É O SEGREDO PARA O ASPETO DA IMAGEM:
     
-    bottom: 30,          // Eleva a barra (efeito flutuante)
-    left: 20,            // Margem lateral esquerda
-    right: 20,           // Margem lateral direita
-    height: 70,          // Altura da barra
-    backgroundColor: '#FFFFFF',
+    bottom: 40,          // Eleva a barra (efeito flutuante)
+    left: 5,            // Margem lateral esquerda
+    right: 5,           // Margem lateral direita
+    height: 40,          // Altura da barra
+    backgroundColor: '#6246ea',
     borderRadius: 35,    // Bordas muito arredondadas (estilo pílula)
     zIndex: 1000, // Força a ficar na frente
-    elevation: 10,
+    elevation: 40,
+    marginBottom: 30, // Remove margem inferior padrão (Android)
     
     // Alinhamento
     flexDirection: 'row',

@@ -1,10 +1,17 @@
 import React from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Button } from 'react-native';
 import { AppHeader } from '../components/AppHeader';
 import { LocationSwitch } from '../components/LocationSwitch';
-import AppNavigator  from '../navigation/AppNavigator';
+import { useNavigation } from '@react-navigation/native';
 
-const HomeScreen = () => {
+
+
+// 1. Escolha UMA forma de declarar (aqui usamos a mais comum)
+export default function HomeScreen() { 
+  
+  const navigation = useNavigation();
+  
+
   return (
     <View style={styles.container}>
       <AppHeader />
@@ -21,14 +28,18 @@ const HomeScreen = () => {
 
       <LocationSwitch />        
       
+      {/* Botão de Busca */}
+        <View style={styles.ButtonResultText}>
+        <Button title="Search" color="#6246ea"></Button>
+      </View>
+
+
     </View>
-
-
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#e0e0e0' },
+  container: { flex: 1, padding: 20, backgroundColor: '#ebe2e29f' },
   searchBar: {
     backgroundColor: '#f3e8ff',
     borderRadius: 25,
@@ -37,6 +48,19 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center'
   },
+  ButtonResultText: {
+    backgroundColor: '#6246ea',
+    borderRadius: 30,
+    paddingHorizontal: 20,
+    marginVertical: 1,
+    marginHorizontal: 1,
+    height: 35,
+    textAlign: 'center',
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+
   filterBar: {
     backgroundColor: '#f3e8ff',
     borderRadius: 25,
@@ -49,4 +73,3 @@ const styles = StyleSheet.create({
   input: { flex: 1 }
 });
 
-export default HomeScreen;

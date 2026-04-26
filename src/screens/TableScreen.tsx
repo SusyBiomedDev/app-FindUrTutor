@@ -19,7 +19,7 @@ const DATA = [
   },
 ];
 
-const TableScreen = () => {
+const TableScreen = ({ navigation }: { navigation: any }) => {
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.card}>
       {/* Cabeçalho do Card */}

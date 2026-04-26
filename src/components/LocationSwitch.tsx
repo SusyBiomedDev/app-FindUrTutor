@@ -11,7 +11,7 @@ export const LocationSwitch = () => {
         onValueChange={() => setIsEnabled(!isEnabled)}
         value={isEnabled}
       />
-      <Text style={styles.text}>Usar a minha localização</Text>
+      <Text style={styles.text}>Use my location</Text>
     </View>
   );
 };
