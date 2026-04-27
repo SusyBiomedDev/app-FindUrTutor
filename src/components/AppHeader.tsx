@@ -1,10 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import Athom from '../assets/images/athom.png';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { Alert } from 'react-native';
 
 export const AppHeader = () => (
   <View style={styles.container}>
-    {/* Adiciona o componente Image antes ou depois do texto */}
+
+
+    <TouchableOpacity 
+        style={styles.notificationIcon} 
+        onPress={() => Alert.alert('You have new notifications!')}
+      >
+        <Icon name="notifications-outline" size={30} color="#000" />
+      
+        <View style={styles.dot} />
+      </TouchableOpacity>
     
     <Text style={styles.logoText}>FindUrTutor</Text>
 
@@ -22,7 +33,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 40,
+    marginTop: 20,
     paddingVertical: 20,    
+  },
+  notificationIcon: {
+    position: 'absolute',
+    top: 50,
+    right: 25,
   },
   logoText: {
     fontSize: 30,
@@ -34,9 +51,18 @@ const styles = StyleSheet.create({
   Athom: {
     width: 50,
     height: 50,
-    marginRight: 30,
-    marginLeft: 10,
-    marginTop: 80,
-  }
+    marginRight: 40,
+    marginLeft: 5,
+    marginTop: 90,
+  },
+  dot: {
+    position: 'absolute',
+    right: 2,
+    top: 2,
+    backgroundColor: '#6246ea',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
 });
 

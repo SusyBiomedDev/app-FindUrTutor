@@ -2,9 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, Platform } from 'react-native'; 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import SavedScreen from '../screens/SavedScreen';
 import HomeScreen from '../screens/HomeScreen';
-import HomeStack from '../screens/HomeStack'; 
 import TableScreen from '../screens/TableScreen';
 
 const Tab = createBottomTabNavigator();
@@ -14,8 +13,8 @@ export default function AppNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4A4459',
-        tabBarInactiveTintColor: '#ffffff',
+        tabBarActiveTintColor: '#d3d3d3',
+        tabBarInactiveTintColor: '#000000',
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
       }}
@@ -40,7 +39,7 @@ export default function AppNavigator() {
 
       <Tab.Screen 
         name="Saved" 
-        component={HomeStack} 
+        component={SavedScreen} 
         options={{ 
           tabBarIcon: ({ color }) => <Icon name="bookmark-outline" color={color} size={26} />,
         }}
@@ -50,7 +49,7 @@ export default function AppNavigator() {
         name="Notifications" 
         component={HomeScreen} 
         options={{
-          tabBarIcon: ({ color }) => <Icon name="bell-outline" color={color} size={26} />,
+          tabBarIcon: ({ color }) => <Icon name="cog-outline" color={color} size={26} />,
         }}
       />
     </Tab.Navigator>

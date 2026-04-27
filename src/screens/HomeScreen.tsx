@@ -1,32 +1,64 @@
-import React from 'react';
-// 1. Adicionei 'Text' aqui nos imports
-import { View, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, Alert } from 'react-native';
 import { AppHeader } from '../components/AppHeader';
 import { LocationSwitch } from '../components/LocationSwitch';
 import { useNavigation } from '@react-navigation/native';
 
-export default function HomeScreen() { 
+export default function HomeScreen() {
   const navigation = useNavigation<any>();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [location, setLocation] = useState('');
+  const [email, setEmail] = useState('');
 
   return (
     <View style={styles.container}>
       <AppHeader />
-      
-      {/* Barra de Busca */}
+
       <View style={styles.searchBar}>
-        <TextInput placeholder="Search..." style={styles.input} />
+        <TextInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search PubMed keyword..."
+          style={styles.input}
+          returnKeyType="search"
+        />
       </View>
 
-      {/* Barra de Filtro */}
       <View style={styles.filterBar}>
-        <TextInput placeholder="Location" style={styles.input} />
+        <TextInput
+          value={location}
+          onChangeText={setLocation}
+          placeholder="Location filter (optional)"
+          style={styles.input}
+        />
       </View>
 
-      <LocationSwitch />        
-      
-      {/* Botão de Busca - Adicionei TouchableOpacity para navegação */}
+      <View style={styles.filterBar}>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Your email (required for PubMed)"
+          style={styles.input}
+          keyboardType="email-address"
+        />
+      </View>
+
+      <LocationSwitch />
+
       <View style={styles.ButtonResultText}>
-        <TouchableOpacity onPress={() => navigation.navigate('TableScreen')}>
+        <TouchableOpacity
+          onPress={() => {
+            if (!email.trim()) {
+              Alert.alert('Email obrigatório', 'Por favor, insira seu email para continuar');
+              return;
+            }
+            navigation.navigate('TableScreen', {
+              keyword: searchQuery.trim() || 'cancer',
+              location: location.trim(),
+              email: email.trim(),
+            });
+          }}
+        >
           <Text style={styles.textStyle}>SEARCH</Text>
         </TouchableOpacity>
       </View>
@@ -35,10 +67,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 20, 
-    backgroundColor: '#91bedb' 
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#91bedb',
   },
   searchBar: {
     backgroundColor: '#f3e8ff',
@@ -46,7 +78,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginVertical: 10,
     height: 50,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   filterBar: {
     backgroundColor: '#f3e8ff',
@@ -55,10 +87,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     height: 40,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
-  input: { 
-    flex: 1 
+  input: {
+    flex: 1,
   },
   ButtonResultText: {
     backgroundColor: '#6246ea',
@@ -67,10 +99,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 10,
     marginTop: 20,
+    marginRight: 100,
+    marginLeft: 100,
   },
   textStyle: {
-    color: '#FFFFFF', // Se o fundo for azul claro, branco pode sumir.
+    color: '#FFFFFF',
     fontSize: 18,
-    textAlign: 'center',    
+    textAlign: 'center',
   },
 });
