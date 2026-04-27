@@ -25,7 +25,7 @@ export const globalStyles = StyleSheet.create({
 
     screen: { // <--- Vê se este nome está igual ao que usas no ecrã
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#91bedb',
     },
 
   bottomTabBar: {
@@ -51,11 +51,11 @@ export const globalStyles = StyleSheet.create({
   tabBar: {
     // Estas propriedades criam o efeito "pílula" flutuante
     position: 'absolute',
-    bottom: 40,          // Distância do fundo
+    bottom: 40,
+    marginTop: 20,          // Distância do fundo
     left: 10,            // Margem esquerda
     right: 10,           // Margem direita
-    height: 65,          // Altura da barra
-    backgroundColor: '#753e71',
+    height: 50,         // Altura da barra
     borderRadius: 80,    // Valor alto para ser totalmente arredondado
     
     // Alinhamento dos itens

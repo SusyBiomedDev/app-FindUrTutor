@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ImageBackgroundComponent } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { globalStyles } from '../styles/globalStyles';
 
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   emailText: {
-    color: '#FFF',
+    color: '#ffffff',
     marginLeft: 8,
   },
   maisDetalhesBtn: {
@@ -143,6 +143,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+
 });
 
 export default TableScreen;
