@@ -1,21 +1,22 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, View, Text, Platform } from 'react-native';
+import { StyleSheet, Platform } from 'react-native'; 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import HomeScreen from '../screens/HomeScreen';
 import HomeStack from '../screens/HomeStack'; 
+import TableScreen from '../screens/TableScreen';
 
 const Tab = createBottomTabNavigator();
 
 export default function AppNavigator() {
-
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4A4459',   // Cor do ícone selecionado
-        tabBarInactiveTintColor: '#ffffff', // Cor do ícone inativo
-        tabBarStyle: styles.tabBar,         // O estilo da barra branca
+        tabBarActiveTintColor: '#4A4459',
+        tabBarInactiveTintColor: '#ffffff',
+        tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
@@ -26,6 +27,17 @@ export default function AppNavigator() {
           tabBarIcon: ({ color }) => <Icon name="home-outline" color={color} size={26} />,
         }}
       />
+
+     
+        <Tab.Screen 
+          name="TableScreen" 
+          component={TableScreen} 
+          options={{
+            tabBarIcon: ({ color }) => (
+            <Icon name="magnify" color={color} size={26} />),
+       }} 
+      />
+
       <Tab.Screen 
         name="Saved" 
         component={HomeStack} 
@@ -33,7 +45,7 @@ export default function AppNavigator() {
           tabBarIcon: ({ color }) => <Icon name="bookmark-outline" color={color} size={26} />,
         }}
       />
-     
+      
       <Tab.Screen 
         name="Notifications" 
         component={HomeScreen} 
@@ -45,27 +57,19 @@ export default function AppNavigator() {
   );
 }
 
-
 const styles = StyleSheet.create({
   tabBar: {
-    // ESTE É O SEGREDO PARA O ASPETO DA IMAGEM:
-    
-    bottom: 40,          // Eleva a barra (efeito flutuante)
-    left: 5,            // Margem lateral esquerda
-    right: 5,           // Margem lateral direita
-    height: 40,          // Altura da barra
+    position: 'absolute', 
+    bottom: 100,    
+    marginHorizontal: 20,    
+    height: 60,          
     backgroundColor: '#6246ea',
-    borderRadius: 35,    // Bordas muito arredondadas (estilo pílula)
-    zIndex: 1000, // Força a ficar na frente
-    elevation: 40,
-    marginBottom: 30, // Remove margem inferior padrão (Android)
-    
-    // Alinhamento
-    flexDirection: 'row',
+    borderRadius: 50,    
+    borderTopWidth: 0,
+    paddingBottom: 0,      // Remove o espaço do texto
+    paddingTop: 10,    
     alignItems: 'center',
     justifyContent: 'center',
-
-    // Sombras (Shadows)
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -77,14 +81,8 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
-    
-    // Remove a linha cinzenta de cima
-    borderTopWidth: 0,
   },
   tabBarLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    paddingBottom: 10,
+    display: 'none', 
   }
- 
 });

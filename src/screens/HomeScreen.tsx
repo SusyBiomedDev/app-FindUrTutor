@@ -1,16 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, Button } from 'react-native';
+// 1. Adicionei 'Text' aqui nos imports
+import { View, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
 import { AppHeader } from '../components/AppHeader';
 import { LocationSwitch } from '../components/LocationSwitch';
 import { useNavigation } from '@react-navigation/native';
 
-
-
-// 1. Escolha UMA forma de declarar (aqui usamos a mais comum)
 export default function HomeScreen() { 
-  
-  const navigation = useNavigation();
-  
+  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
@@ -28,18 +24,22 @@ export default function HomeScreen() {
 
       <LocationSwitch />        
       
-      {/* Botão de Busca */}
-        <View style={styles.ButtonResultText}>
-        <Button title="Search" color="#6246ea"></Button>
+      {/* Botão de Busca - Adicionei TouchableOpacity para navegação */}
+      <View style={styles.ButtonResultText}>
+        <TouchableOpacity onPress={() => navigation.navigate('TableScreen')}>
+          <Text style={styles.textStyle}>SEARCH</Text>
+        </TouchableOpacity>
       </View>
-
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#ebe2e29f' },
+  container: { 
+    flex: 1, 
+    padding: 20, 
+    backgroundColor: '#91bedb' 
+  },
   searchBar: {
     backgroundColor: '#f3e8ff',
     borderRadius: 25,
@@ -48,19 +48,6 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center'
   },
-  ButtonResultText: {
-    backgroundColor: '#6246ea',
-    borderRadius: 30,
-    paddingHorizontal: 20,
-    marginVertical: 1,
-    marginHorizontal: 1,
-    height: 35,
-    textAlign: 'center',
-    alignContent: 'center',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-
   filterBar: {
     backgroundColor: '#f3e8ff',
     borderRadius: 25,
@@ -70,6 +57,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center'
   },
-  input: { flex: 1 }
+  input: { 
+    flex: 1 
+  },
+  ButtonResultText: {
+    backgroundColor: '#6246ea',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    marginTop: 20,
+  },
+  textStyle: {
+    color: '#FFFFFF', // Se o fundo for azul claro, branco pode sumir.
+    fontSize: 18,
+    textAlign: 'center',    
+  },
 });
-
