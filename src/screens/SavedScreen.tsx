@@ -1,29 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
-
-
-const INITIAL_DATA = [
-  { id: '1', nome: 'Centro A', area: 'y', email: 'email@uni.pt' },
-  { id: '2', nome: 'Centro B', area: 'x', email: 'contacto@lab.pt' },
-];
+import { useSaved } from '../context/SavedContext';
 
 const SavedScreen = ({ navigation }: { navigation: any }) => {
-
-  const [savedItems, setSavedItems] = useState(INITIAL_DATA);
-
- 
-  const handleRemove = (id: string) => {
-    setSavedItems((prev) => prev.filter(item => item.id !== id));
-  };
+  const { savedItems, toggleSaved } = useSaved();
 
   const renderItem = ({ item }: { item: any }) => (
-    <CardItem 
-      item={item} 
-      initialMarked={true} 
-      onToggleBookmark={() => handleRemove(item.id)} 
+    <CardItem
+      item={item}
+      initialMarked={true}
+      onToggleBookmark={() => toggleSaved(item)}
     />
   );
 
@@ -32,6 +21,12 @@ const SavedScreen = ({ navigation }: { navigation: any }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Saved</Text>
         <Icon name="bookmark-check" size={28} color="#6200EE" />
+      </View>
+
+      <View style={styles.statsContainer}>
+        <Text style={styles.statsText}>
+          {savedItems.length} {savedItems.length === 1 ? 'item guardado' : 'itens guardados'}
+        </Text>
       </View>
 
       <FlatList
@@ -67,6 +62,15 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
+  },
+  statsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
+  statsText: {
+    fontSize: 14,
+    color: '#6200EE',
+    fontWeight: '600',
   },
   listPadding: {
     paddingHorizontal: 20,

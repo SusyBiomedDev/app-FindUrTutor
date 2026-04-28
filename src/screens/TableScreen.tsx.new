@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
-import { useSaved } from '../context/SavedContext';
 import { procurarPubmed, extrairCorrespondingAuthors } from '../services/pubmedService';
 
 const TableScreen = ({ route }: { route: any }) => {
@@ -12,30 +11,35 @@ const TableScreen = ({ route }: { route: any }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { savedItems, toggleSaved, isSaved } = useSaved();
+  const [step, setStep] = useState<string>('');
 
   useEffect(() => {
     async function loadResults() {
       setLoading(true);
       setError(null);
+      setStep('Iniciando busca...');
 
       try {
-        console.log('Buscando PubMed para:', keyword);
+        setStep('🔍 Buscando artigos no PubMed...');
+        console.log('📊 Buscando PubMed para:', keyword);
         const ids = await procurarPubmed(keyword, 100, email);
-        console.log('IDs encontrados:', ids?.length || 0, ids);
+        console.log('✅ IDs encontrados:', ids?.length || 0);
 
         if (!ids || ids.length === 0) {
           setError('Nenhum artigo encontrado para essa palavra-chave.');
+          setStep('');
           setLoading(false);
           return;
         }
 
-        console.log('Extraindo autores...');
+        setStep(`✅ ${ids.length} artigos encontrados. Extraindo autores...`);
+        console.log('👥 Extraindo autores...');
         const results = await extrairCorrespondingAuthors(ids, 50, email);
-        console.log('Autores encontrados:', results?.length || 0);
+        console.log('✅ Autores encontrados:', results?.length || 0);
 
         if (!results || results.length === 0) {
           setError('Nenhum autor encontrado nos países alvo.');
+          setStep('');
           setLoading(false);
           return;
         }
@@ -51,40 +55,47 @@ const TableScreen = ({ route }: { route: any }) => {
           }))
         );
       } catch (err: any) {
-        console.error('Erro na busca:', err);
-        setError(err?.message || 'Erro ao carregar os resultados.');
+        console.error('❌ Erro na busca:', err);
+        
+        let errorMessage = err?.message || 'Erro ao carregar os resultados.';
+        
+        // Mensagens mais claras para erros comuns
+        if (errorMessage.includes('Network request failed') || errorMessage.includes('Failed to fetch')) {
+          errorMessage = `🔴 Erro de conexão ao servidor!\n\nCertifique-se que:\n1. Executou: npm run android\n2. O servidor Express está a rodar na porta 3000\n3. Seu Android está conectado à rede\n\nDetalhes: ${err?.message}`;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
+        setStep('');
       }
     }
 
     loadResults();
   }, [keyword]);
 
-  const renderItem = ({ item }: { item: any }) => (
-    <CardItem
-      item={item}
-      initialMarked={isSaved(item.id)}
-      onToggleBookmark={() => toggleSaved(item)}
-    />
-  );
+  const renderItem = ({ item }: { item: any }) => <CardItem item={item} />;
 
   return (
     <View style={[globalStyles.screen, styles.container]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Results for “{keyword}”</Text>
+        <Text style={styles.title}>Results for "{keyword}"</Text>
         <Icon name="magnify" size={28} color="#6200EE" />
       </View>
 
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#6200EE" />
-          <Text style={styles.statusText}>Buscando artigos...</Text>
+          <Text style={styles.statusText}>{step || 'Carregando...'}</Text>
         </View>
       ) : error ? (
-        <View style={styles.loader}>
-          <Text style={styles.statusText}>{error}</Text>
-        </View>
+        <ScrollView style={styles.errorContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.errorBox}>
+            <Icon name="alert-circle" size={40} color="#FF3333" style={{ marginBottom: 10 }} />
+            <Text style={styles.errorTitle}>Erro ao carregar resultados</Text>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        </ScrollView>
       ) : data.length === 0 ? (
         <View style={styles.loader}>
           <Text style={styles.statusText}>Nenhum resultado encontrado.</Text>
@@ -135,6 +146,29 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  errorBox: {
+    backgroundColor: '#FFE6E6',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF3333',
+    marginBottom: 10,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
