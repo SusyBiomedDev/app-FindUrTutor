@@ -68,6 +68,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'Server is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`FindUrTutor Backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`FindUrTutor Backend running on http://0.0.0.0:${PORT}`);
+  console.log(`Try http://localhost:${PORT}/health or http://<PC-IP>:${PORT}/health from another device`);
 });

@@ -1,4 +1,7 @@
-const API_URL = 'http://10.0.2.2:3000/api';
+import { Platform } from 'react-native';
+
+const API_HOST = Platform.OS === 'android' ? '192.168.1.98' : 'localhost';
+const API_URL = `http://${API_HOST}:3000/api`;
 
 const LOCAIS_ALVO = [
   'United Kingdom','UK','England','Scotland','Wales','Northern Ireland',
@@ -35,27 +38,39 @@ export async function procurarPubmed(keyword: string, maxResultados = 100, userE
     const searchTerm = `${keyword} AND ("Journal Article"[Publication Type] OR "Research Support, U.S. Gov't, Non-P.H.S."[Publication Type]) AND ${minYear}:${currentYear}[Publication Date]`;
     
     const url = `${API_URL}/pubmed/search?keyword=${encodeURIComponent(searchTerm)}&maxResults=${maxResultados}&email=${encodeURIComponent(userEmail)}`;
-    console.log('Requisitando (com filtros):', url);
+    console.log('🔍 Requisitando:', url);
+    console.log('🌐 API host:', API_URL, 'Platform:', Platform.OS);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
-    });
+      timeout: 30000,
+    } as any);
+
+    console.log('📡 Response status:', response.status);
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
     
     const idList = data?.esearchresult?.idlist || [];
-    console.log(`procurarPubmed('${keyword}'): ${idList.length} IDs encontrados`);
+    console.log(`✅ procurarPubmed('${keyword}'): ${idList.length} IDs encontrados`);
     
     return idList;
-  } catch (error) {
-    console.error('Erro em procurarPubmed:', error);
+  } catch (error: any) {
+    console.error('❌ Erro em procurarPubmed:', error?.message || error);
+    
+    // Verificar se é erro de rede
+    if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+      throw new Error(`Erro de conexão: a app não conseguiu contactar ${API_URL}.\n\nUse um servidor Express a correr em http://localhost:3000 ou, se estiver em telemóvel físico, substitua o host por IP do PC.\n\nDetalhes: ${error.message}`);
+    }
+    
     throw error;
   }
 }
@@ -73,7 +88,7 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 50, u
   const seenEmails = new Set<string>();
 
   if (!idList || idList.length === 0) {
-    console.log('extrairCorrespondingAuthors: Lista de IDs vazia');
+    console.log('⚠️ extrairCorrespondingAuthors: Lista de IDs vazia');
     return resultados;
   }
 
@@ -82,40 +97,44 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 50, u
       const subset = idList.slice(i, i + lote).join(',');
       const url = `${API_URL}/pubmed/fetch?ids=${encodeURIComponent(subset)}&email=${encodeURIComponent(userEmail)}`;
       
-      console.log(`Buscando lote ${Math.floor(i / lote) + 1}...`);
+      console.log(`📦 Buscando lote ${Math.floor(i / lote) + 1} de ${Math.ceil(idList.length / lote)}...`);
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/xml',
-        },
-      });
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/xml',
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        } as any);
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          console.error(`❌ HTTP ${response.status}: ${response.statusText} na URL: ${url}`);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-      const xml = await response.text();
+        const xml = await response.text();
 
-      const articleBlocks = xml.match(/<PubmedArticle[\s\S]*?<\/PubmedArticle>/gi) || [];
-      console.log(`Lote ${Math.floor(i / lote) + 1}: ${articleBlocks.length} artigos encontrados`);
+        const articleBlocks = xml.match(/<PubmedArticle[\s\S]*?<\/PubmedArticle>/gi) || [];
+        console.log(`   ✓ Lote ${Math.floor(i / lote) + 1}: ${articleBlocks.length} artigos encontrados`);
 
-      for (const articleBlock of articleBlocks) {
-        const title = getTagValue(articleBlock, 'ArticleTitle');
-        // Extrair DOI
-        const doi = getTagValue(articleBlock, 'ELocationID') || 
-                   getTagValue(articleBlock, 'ArticleId');
-        // Extrair PMID
-        const pmidMatch = articleBlock.match(/<PMID[^>]*>(\d+)<\/PMID>/i);
-        const pmid = pmidMatch ? pmidMatch[1] : undefined;
-        
-        const authorBlocks = articleBlock.match(/<Author[\s\S]*?<\/Author>/gi) || [];
+        for (const articleBlock of articleBlocks) {
+          const title = getTagValue(articleBlock, 'ArticleTitle');
+          // Extrair DOI
+          const doi = getTagValue(articleBlock, 'ELocationID') || 
+                     getTagValue(articleBlock, 'ArticleId');
+          // Extrair PMID
+          const pmidMatch = articleBlock.match(/<PMID[^>]*>(\d+)<\/PMID>/i);
+          const pmid = pmidMatch ? pmidMatch[1] : undefined;
+          
+          const authorBlocks = articleBlock.match(/<Author[\s\S]*?<\/Author>/gi) || [];
 
-        for (const authorBlock of authorBlocks) {
-          const firstName = getTagValue(authorBlock, 'ForeName');
-          const lastName = getTagValue(authorBlock, 'LastName');
-          const authorName = [firstName, lastName].filter(Boolean).join(' ').trim() || 'Autor Desconhecido';
-          const affiliations = getAllTagValues(authorBlock, 'Affiliation');
+          for (const authorBlock of authorBlocks) {
+            const firstName = getTagValue(authorBlock, 'ForeName');
+            const lastName = getTagValue(authorBlock, 'LastName');
+            const authorName = [firstName, lastName].filter(Boolean).join(' ').trim() || 'Autor Desconhecido';
+            const affiliations = getAllTagValues(authorBlock, 'Affiliation');
 
           for (const affiliation of affiliations) {
             // Validar que tem país alvo
@@ -159,11 +178,21 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 50, u
       await new Promise<void>((resolve) => {
         setTimeout(() => resolve(), 500);
       });
+      } catch (batchError: any) {
+        console.warn(`⚠️ Erro ao processar lote ${Math.floor(i / lote) + 1}: ${batchError?.message}`);
+        // Continua com o próximo lote
+        continue;
+      }
     }
     
-    console.log(`extrairCorrespondingAuthors: ${resultados.length} autores únicos encontrados`);
-  } catch (error) {
-    console.error('Erro em extrairCorrespondingAuthors:', error);
+    console.log(`✅ extrairCorrespondingAuthors: ${resultados.length} autores únicos encontrados`);
+  } catch (error: any) {
+    console.error('❌ Erro em extrairCorrespondingAuthors:', error?.message || error);
+    
+    if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
+      throw new Error(`Erro de conexão: Certifique-se que o servidor Express está a correr na porta 3000. Detalhes: ${error.message}`);
+    }
+    
     throw error;
   }
 

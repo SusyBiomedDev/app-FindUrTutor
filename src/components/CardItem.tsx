@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -23,13 +23,17 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
 
   const [isMarked, setIsMarked] = useState<boolean>(initialMarked || false);
 
+  // Sincroniza o estado quando initialMarked muda
+  useEffect(() => {
+    setIsMarked(initialMarked || false);
+  }, [initialMarked]);
+
   const handlePress = () => {
     setIsMarked(!isMarked);
-   
+    
     if (onToggleBookmark) {
       onToggleBookmark();
     }
-    
   };
 
   const abrirPubMed = () => {
@@ -57,7 +61,7 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
         </View>
         
        
-        <TouchableOpacity onPress={() => setIsMarked(!isMarked)}>
+        <TouchableOpacity onPress={handlePress}>
           <Icon 
             name={isMarked ? "bookmark" : "bookmark-outline"} 
             size={24} 
