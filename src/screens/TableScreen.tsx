@@ -59,7 +59,7 @@ const TableScreen = ({ route }: { route: any }) => {
     }
 
     loadResults();
-  }, [keyword]);
+  }, [email, keyword]);
 
   const renderItem = ({ item }: { item: any }) => (
     <CardItem
