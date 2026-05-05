@@ -5,6 +5,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SavedScreen from '../screens/SavedScreen';
 import HomeScreen from '../screens/HomeScreen';
 import TableScreen from '../screens/TableScreen';
+import SettingsScreen from '../screens/SettingScreen';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -46,8 +48,8 @@ export default function AppNavigator() {
       />
       
       <Tab.Screen 
-        name="Notifications" 
-        component={HomeScreen} 
+        name="Settings" 
+        component={SettingsScreen} 
         options={{
           tabBarIcon: ({ color }) => <Icon name="cog-outline" color={color} size={26} />,
         }}

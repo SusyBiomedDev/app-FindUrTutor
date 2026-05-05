@@ -12,7 +12,7 @@ export const AppHeader = () => (
         style={styles.notificationIcon} 
         onPress={() => Alert.alert('You have new notifications!')}
       >
-        <Icon name="notifications-outline" size={30} color="#000" />
+        <Icon name="notifications-outline" size={25} color="#000" />
       
         <View style={styles.dot} />
       </TouchableOpacity>
@@ -32,20 +32,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
     marginTop: 20,
     paddingVertical: 20,    
   },
   notificationIcon: {
     position: 'absolute',
-    top: 50,
-    right: 25,
+    top: 40,
+    right: 10,
   },
   logoText: {
     fontSize: 30,
     fontFamily: 'cursive',
     color: '#6246ea',  
-    marginTop: 90,
+    marginTop: 80,
     marginLeft: 30,   
   },
   Athom: {
