@@ -59,14 +59,15 @@ export default function AppNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     position: 'absolute', 
-    bottom: 100,    
+    bottom: 50,    
     marginHorizontal: 20,    
     height: 60,          
     backgroundColor: '#6246ea',
     borderRadius: 50,    
     borderTopWidth: 0,
     paddingBottom: 0,      // Remove o espaço do texto
-    paddingTop: 10,    
+    paddingTop: 10,  
+    marginTop: 10,  
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
