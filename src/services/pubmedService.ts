@@ -1,81 +1,49 @@
-import { Platform } from 'react-native';
+import { XMLParser } from 'fast-xml-parser';
 
-const API_HOST = Platform.OS === 'android' ? '192.168.1.98' : 'localhost';
-const API_URL = `http://${API_HOST}:3000/api`;
+const PUBMED_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
 
 const LOCAIS_ALVO = [
-  'United Kingdom','UK','England','Scotland','Wales','Northern Ireland',
-  'Ireland','Sweden','Swedish','Norway','Norwegian','Denmark','Danish',
-  'Finland','Finnish','Iceland','Icelandic','France','French','Portugal','Portuguese','Spain','Spanish','Italy','Italian','Netherlands','Dutch','Belgium','Belgian','Switzerland','Swiss','Austria','Austrian',
-  'Germany','German','Greece','Greek','Cyprus','Cypriot','Luxembourg','Luxembourgish','Liechtenstein','Liechtensteiner',
+  'United Kingdom', 'UK', 'England', 'Scotland', 'Wales', 'Northern Ireland',
+  'Ireland', 'Sweden', 'Swedish', 'Norway', 'Norwegian', 'Denmark', 'Danish',
+  'Finland', 'Finnish', 'Iceland', 'Icelandic', 'France', 'French',
+  'Portugal', 'Portuguese', 'Spain', 'Spanish', 'Italy', 'Italian',
+  'Netherlands', 'Dutch', 'Belgium', 'Belgian', 'Switzerland', 'Swiss',
+  'Austria', 'Austrian', 'Germany', 'German', 'Greece', 'Greek',
+  'Cyprus', 'Cypriot', 'Luxembourg', 'Luxembourgish', 'Liechtenstein', 'Liechtensteiner',
 ];
 
-// Validar formato de email
-const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
-function getTagValue(xml: string, tag: string): string {
-  const match = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
-  return match ? match[1].trim() : '';
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  isArray: (name) => ['PubmedArticle', 'Author', 'AffiliationInfo', 'ArticleId', 'ELocationID'].includes(name),
+  textNodeName: '#text',
+});
+
+export async function procurarPubmed(
+  keyword: string,
+  maxResultados = 100,
+  userEmail = 'noemail@example.com',
+  retstart = 0,
+): Promise<{ ids: string[]; total: number }> {
+  const currentYear = new Date().getFullYear();
+  const minYear = currentYear - 10;
+  const searchTerm = `${keyword} AND ${minYear}:${currentYear}[Publication Date]`;
+
+  const url = `${PUBMED_BASE}/esearch.fcgi?db=pubmed&term=${encodeURIComponent(searchTerm)}&retmax=${maxResultados}&retstart=${retstart}&retmode=json&email=${encodeURIComponent(userEmail)}`;
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`PubMed search failed: ${response.status}`);
+
+  const data = await response.json();
+  return {
+    ids: data?.esearchresult?.idlist || [],
+    total: parseInt(data?.esearchresult?.count || '0', 10),
+  };
 }
 
-function getAllTagValues(xml: string, tag: string): string[] {
-  const values: string[] = [];
-  const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'gi');
-  let match;
-
-  while ((match = regex.exec(xml)) !== null) {
-    values.push(match[1].trim());
-  }
-
-  return values;
-}
-
-export async function procurarPubmed(keyword: string, maxResultados = 100, userEmail = 'noemail@example.com'): Promise<string[]> {
-  try {
-    // Adicionar filtros: artigos dos últimos 5 anos, Research articles
-    const currentYear = new Date().getFullYear();
-    const minYear = currentYear - 5;
-    const searchTerm = `${keyword} AND ("Journal Article"[Publication Type] OR "Research Support, U.S. Gov't, Non-P.H.S."[Publication Type]) AND ${minYear}:${currentYear}[Publication Date]`;
-    
-    const url = `${API_URL}/pubmed/search?keyword=${encodeURIComponent(searchTerm)}&maxResults=${maxResultados}&email=${encodeURIComponent(userEmail)}`;
-    console.log('🔍 Requisitando:', url);
-    console.log('🌐 API host:', API_URL, 'Platform:', Platform.OS);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      timeout: 30000,
-    } as any);
-
-    console.log('📡 Response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    
-    const idList = data?.esearchresult?.idlist || [];
-    console.log(`✅ procurarPubmed('${keyword}'): ${idList.length} IDs encontrados`);
-    
-    return idList;
-  } catch (error: any) {
-    console.error('❌ Erro em procurarPubmed:', error?.message || error);
-    
-    // Verificar se é erro de rede
-    if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
-      throw new Error(`Erro de conexão: a app não conseguiu contactar ${API_URL}.\n\nUse um servidor Express a correr em http://localhost:3000 ou, se estiver em telemóvel físico, substitua o host por IP do PC.\n\nDetalhes: ${error.message}`);
-    }
-    
-    throw error;
-  }
-}
-
-export async function extrairCorrespondingAuthors(idList: string[], lote = 50, userEmail = 'noemail@example.com') {
+export async function extrairCorrespondingAuthors(idList: string[], lote = 100, userEmail = 'noemail@example.com') {
   const resultados: Array<{
     id: string;
     Nome: string;
@@ -87,113 +55,87 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 50, u
   }> = [];
   const seenEmails = new Set<string>();
 
-  if (!idList || idList.length === 0) {
-    console.log('⚠️ extrairCorrespondingAuthors: Lista de IDs vazia');
-    return resultados;
-  }
+  if (!idList || idList.length === 0) return resultados;
 
-  try {
-    for (let i = 0; i < idList.length; i += lote) {
-      const subset = idList.slice(i, i + lote).join(',');
-      const url = `${API_URL}/pubmed/fetch?ids=${encodeURIComponent(subset)}&email=${encodeURIComponent(userEmail)}`;
-      
-      console.log(`📦 Buscando lote ${Math.floor(i / lote) + 1} de ${Math.ceil(idList.length / lote)}...`);
-      
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/xml',
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000,
-        } as any);
+  for (let i = 0; i < idList.length; i += lote) {
+    const subset = idList.slice(i, i + lote).join(',');
+    const url = `${PUBMED_BASE}/efetch.fcgi?db=pubmed&id=${encodeURIComponent(subset)}&rettype=xml&retmode=xml&email=${encodeURIComponent(userEmail)}`;
 
-        if (!response.ok) {
-          console.error(`❌ HTTP ${response.status}: ${response.statusText} na URL: ${url}`);
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        const xml = await response.text();
+      const xml = await response.text();
+      const parsed = xmlParser.parse(xml);
+      const articles: any[] = parsed?.PubmedArticleSet?.PubmedArticle || [];
 
-        const articleBlocks = xml.match(/<PubmedArticle[\s\S]*?<\/PubmedArticle>/gi) || [];
-        console.log(`   ✓ Lote ${Math.floor(i / lote) + 1}: ${articleBlocks.length} artigos encontrados`);
+      for (const article of articles) {
+        const medlineCitation = article?.MedlineCitation;
+        if (!medlineCitation) continue;
 
-        for (const articleBlock of articleBlocks) {
-          const title = getTagValue(articleBlock, 'ArticleTitle');
-          // Extrair DOI
-          const doi = getTagValue(articleBlock, 'ELocationID') || 
-                     getTagValue(articleBlock, 'ArticleId');
-          // Extrair PMID
-          const pmidMatch = articleBlock.match(/<PMID[^>]*>(\d+)<\/PMID>/i);
-          const pmid = pmidMatch ? pmidMatch[1] : undefined;
-          
-          const authorBlocks = articleBlock.match(/<Author[\s\S]*?<\/Author>/gi) || [];
+        const pmidRaw = medlineCitation?.PMID;
+        const pmid = typeof pmidRaw === 'object' ? String(pmidRaw?.['#text'] || '') : String(pmidRaw || '');
 
-          for (const authorBlock of authorBlocks) {
-            const firstName = getTagValue(authorBlock, 'ForeName');
-            const lastName = getTagValue(authorBlock, 'LastName');
-            const authorName = [firstName, lastName].filter(Boolean).join(' ').trim() || 'Autor Desconhecido';
-            const affiliations = getAllTagValues(authorBlock, 'Affiliation');
+        const articleData = medlineCitation?.Article;
+        if (!articleData) continue;
 
-          for (const affiliation of affiliations) {
-            // Validar que tem país alvo
-            const hasCountry = LOCAIS_ALVO.some((pais) =>
+        const titleRaw = articleData?.ArticleTitle;
+        const title = typeof titleRaw === 'object' ? String(titleRaw?.['#text'] || '') : String(titleRaw || '');
+
+        const articleIds: any[] = article?.PubmedData?.ArticleIdList?.ArticleId || [];
+        const doiEntry = articleIds.find((id: any) => id?.['@_IdType'] === 'doi');
+        const doi = doiEntry ? (typeof doiEntry === 'object' ? String(doiEntry?.['#text'] || '') : String(doiEntry)) : undefined;
+
+        const authors: any[] = articleData?.AuthorList?.Author || [];
+
+        for (const author of authors) {
+          const firstName = author?.ForeName || '';
+          const lastName = author?.LastName || '';
+          const authorName = [firstName, lastName].filter(Boolean).join(' ').trim();
+          if (!authorName) continue;
+
+          const affiliationInfos: any[] = author?.AffiliationInfo || [];
+
+          for (const affInfo of affiliationInfos) {
+            const affiliationRaw = affInfo?.Affiliation;
+            const affiliation = typeof affiliationRaw === 'object'
+              ? String(affiliationRaw?.['#text'] || '')
+              : String(affiliationRaw || '');
+
+            if (!affiliation) continue;
+
+            const hasCountry = LOCAIS_ALVO.some(pais =>
               affiliation.toLowerCase().includes(pais.toLowerCase())
             );
-
             if (!hasCountry) continue;
 
-            // Extrair email com regex mais rigoroso
             const emailMatches = affiliation.match(/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+/g) || [];
-            
-            if (emailMatches.length === 0) continue;
-
-            // Validar email contra regex RFC
-            const validEmails = emailMatches.filter(email => emailRegex.test(email));
+            const validEmails = emailMatches.filter(e => emailRegex.test(e));
             if (validEmails.length === 0) continue;
 
             const email = validEmails[0];
-            
-            // Evitar duplicatas
             if (seenEmails.has(email)) continue;
             seenEmails.add(email);
-
-            // Validar que nome não é vazio
-            if (!authorName || authorName === 'Autor Desconhecido') continue;
 
             resultados.push({
               id: email,
               Nome: authorName,
               Email: email,
-              Título: title || 'Título Desconhecido',
+              Título: title,
               Afiliação: affiliation,
-              DOI: doi,
-              PMID: pmid,
+              DOI: doi || undefined,
+              PMID: pmid || undefined,
             });
           }
         }
       }
+    } catch (err: any) {
+      console.warn(`Erro no lote ${Math.floor(i / lote) + 1}:`, err?.message);
+    }
 
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
-      } catch (batchError: any) {
-        console.warn(`⚠️ Erro ao processar lote ${Math.floor(i / lote) + 1}: ${batchError?.message}`);
-        // Continua com o próximo lote
-        continue;
-      }
+    if (i + lote < idList.length) {
+      await new Promise<void>(resolve => setTimeout(resolve, 1000));
     }
-    
-    console.log(`✅ extrairCorrespondingAuthors: ${resultados.length} autores únicos encontrados`);
-  } catch (error: any) {
-    console.error('❌ Erro em extrairCorrespondingAuthors:', error?.message || error);
-    
-    if (error?.message?.includes('Network request failed') || error?.message?.includes('Failed to fetch')) {
-      throw new Error(`Erro de conexão: Certifique-se que o servidor Express está a correr na porta 3000. Detalhes: ${error.message}`);
-    }
-    
-    throw error;
   }
 
   return resultados;
