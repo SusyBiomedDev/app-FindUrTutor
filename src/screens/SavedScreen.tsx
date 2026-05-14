@@ -5,7 +5,7 @@ import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
 import { useSaved } from '../context/SavedContext';
 
-const SavedScreen = ({ navigation }: { navigation: any }) => {
+const SavedScreen = ({ }: { navigation: any }) => {
   const { savedItems, toggleSaved } = useSaved();
 
   const renderItem = ({ item }: { item: any }) => (
