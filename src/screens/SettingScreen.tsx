@@ -14,7 +14,7 @@ const SettingsScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Settings</Text>
+      <Text style={styles.title}>Settings</Text>
 
       {/* Conta */}
       <View style={styles.section}>
@@ -75,11 +75,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#91bedb',
   },
-  header: {
+  title: {
     fontSize: 28,
     fontWeight: 'bold',
     margin: 16,
     marginTop: 50,
+    color: '#333',
   },
   section: {
     backgroundColor: '#e6e6e6',

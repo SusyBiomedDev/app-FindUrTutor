@@ -16,7 +16,7 @@ const TableScreen = ({ route }: { route: any }) => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { toggleSaved, isSaved } = useSaved();
+  const { toggleSaved } = useSaved();
 
   useEffect(() => {
     setPage(1);
@@ -72,7 +72,7 @@ const TableScreen = ({ route }: { route: any }) => {
   const renderItem = ({ item }: { item: any }) => (
     <CardItem
       item={item}
-      initialMarked={isSaved(item.id)}
+      initialMarked={false}
       onToggleBookmark={() => toggleSaved(item)}
     />
   );
@@ -145,13 +145,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    fontSize: 26,
+    fontSize: 27,
     fontWeight: 'bold',
-    color: '#333',
-    marginTop: 20,
-    flex: 1,
-    marginRight: 10,
+    marginTop: 4, 
+    color: '#333',   
   },
+
   listPadding: {
     paddingBottom: 20,
   },

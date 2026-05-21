@@ -1,14 +1,19 @@
+
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
-import { useSaved } from '../context/SavedContext';
+import { useSaved, SavedItem, } from '../context/SavedContext';
 
-const SavedScreen = ({ }: { navigation: any }) => {
+const SavedScreen = () => {
   const { savedItems, toggleSaved } = useSaved();
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({
+    item,
+  }: {
+    item: SavedItem;
+  }) => (
     <CardItem
       item={item}
       initialMarked={true}
@@ -20,12 +25,20 @@ const SavedScreen = ({ }: { navigation: any }) => {
     <View style={[globalStyles.screen, styles.container]}>
       <View style={styles.header}>
         <Text style={styles.title}>Saved</Text>
-        <Icon name="bookmark-check" size={28} color="#6200EE" />
+
+        <Icon
+          name="bookmark-check"
+          size={28}
+          color="#6200EE"
+        />
       </View>
 
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
-          {savedItems.length} {savedItems.length === 1 ? 'item guardado' : 'itens guardados'}
+          {savedItems.length}{' '}
+          {savedItems.length === 1
+            ? 'Saved item'
+            : 'Saved items'}
         </Text>
       </View>
 
@@ -33,12 +46,22 @@ const SavedScreen = ({ }: { navigation: any }) => {
         data={savedItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listPadding}
+        contentContainerStyle={[
+          styles.listPadding,
+          savedItems.length === 0 && { flex: 1, },
+        ]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="bookmark-off-outline" size={50} color="#CCC" />
-            <Text style={styles.emptyText}>Ainda não tens centros guardados.</Text>
+            <Icon
+              name="bookmark-off-outline"
+              size={50}
+              color="#CCC"
+            />
+
+            <Text style={styles.emptyText}>
+              You haven't saved any centers/tutors yet.
+            </Text>
           </View>
         }
       />
@@ -51,42 +74,50 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 50,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
     alignItems: 'center',
+    paddingHorizontal: 20,
+
     marginBottom: 20,
   },
+
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
   },
+
   statsContainer: {
     paddingHorizontal: 20,
     marginBottom: 15,
   },
+
   statsText: {
     fontSize: 14,
     color: '#6200EE',
     fontWeight: '600',
   },
+
   listPadding: {
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
+
   emptyContainer: {
-    marginTop: 100,
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
   },
+
   emptyText: {
+    marginTop: 10,
     textAlign: 'center',
     color: '#999',
     fontSize: 16,
-    marginTop: 10,
-  }
+  },
 });
 
 export default SavedScreen;

@@ -1,50 +1,110 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface SavedItem {
+import React, { createContext, useContext, useEffect, useState, } from 'react';
+
+// biblioteca responsável pelo armazenamento local
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = '@saved_items';
+
+export interface SavedItem {
   id: string;
-  nome: string;
-  area: string;
-  email: string;
-  doi?: string;
-  pmid?: string;
+  title?: string;
+  image?: string;
+  [key: string]: any;
 }
 
-interface SavedContextValue {
+interface SavedContextData {
   savedItems: SavedItem[];
-  toggleSaved: (item: SavedItem) => void;
-  isSaved: (id: string) => boolean;
+
+  // função para adicionar/remover favoritos
+  toggleSaved: (item: SavedItem) => Promise<void>;
 }
 
-const SavedContext = createContext<SavedContextValue | undefined>(undefined);
 
-export function SavedProvider({ children }: { children: ReactNode }) {
+const SavedContext = createContext({} as SavedContextData);
+
+export const SavedProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  // estado para armazenar os itens guardados
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
 
-  const toggleSaved = (item: SavedItem) => {
-    setSavedItems((prev) => {
-      const exists = prev.some((saved) => saved.id === item.id);
-      if (exists) {
-        return prev.filter((saved) => saved.id !== item.id);
+  // carregar os favoritos ao iniciar app
+  useEffect(() => {
+    loadSavedItems();
+  }, []);
+
+  // função para carregar favoritos do AsyncStorage
+  const loadSavedItems = async () => {
+    try {
+
+        // obter dados do AsyncStorage
+      const storedItems = await AsyncStorage.getItem(STORAGE_KEY);
+
+       // verificar se existem dados
+      if (storedItems) {
+        setSavedItems(JSON.parse(storedItems));
       }
-      return [...prev, item];
-    });
+    } catch (error) {
+      console.log('Error while loading saved items:', error);
+    }
   };
 
-  const isSaved = (id: string) => {
-    return savedItems.some((saved) => saved.id === id);
+   // guardar favoritos no AsyncStorage
+  const updateStorage = async (items: SavedItem[]) => {
+    try {
+
+       // converter array para string JSON
+      await AsyncStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(items),
+      );
+    } catch (error) {
+      console.log('Error while saving items:', error);
+    }
+  };
+
+  const toggleSaved = async (item: SavedItem) => {
+    try {
+      const alreadySaved = savedItems.some(
+        saved => saved.id === item.id,
+      );
+
+      let updatedItems: SavedItem[];
+
+      if (alreadySaved) {
+        updatedItems = savedItems.filter(
+          saved => saved.id !== item.id,
+        );
+      } else {
+        updatedItems = [...savedItems, item];
+      }
+
+       // atualizar estado
+      setSavedItems(updatedItems);
+
+       // atualizar AsyncStorage
+      await updateStorage(updatedItems);
+
+    } catch (error) {
+      console.log('Error while updating saved items:', error);
+    }
   };
 
   return (
-    <SavedContext.Provider value={{ savedItems, toggleSaved, isSaved }}>
+    <SavedContext.Provider
+      value={{
+        savedItems,
+        toggleSaved,
+      }}
+    >
       {children}
     </SavedContext.Provider>
   );
-}
+};
 
-export function useSaved() {
-  const context = useContext(SavedContext);
-  if (!context) {
-    throw new Error('useSaved must be used within a SavedProvider');
-  }
-  return context;
-}
+export const useSaved = () => {
+  return useContext(SavedContext);
+};
