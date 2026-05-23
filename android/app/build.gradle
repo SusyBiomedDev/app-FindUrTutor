@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -79,6 +79,9 @@ android {
 
     namespace "com.findurtutor"
     defaultConfig {
+        manifestPlaceholders = [
+        MY_GOOGLE_MAPS_KEY: project.findProperty("MY_GOOGLE_MAPS_KEY") ?: ""
+    ]
         applicationId "com.findurtutor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion

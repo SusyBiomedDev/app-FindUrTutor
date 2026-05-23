@@ -64,6 +64,7 @@ yarn-error.log
 .metro-health-check*
 
 # SECRET
+android/gradle.properties
 .env
 
 # testing
