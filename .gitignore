@@ -64,13 +64,16 @@ yarn-error.log
 .metro-health-check*
 
 # Environment variables
-.env
 .env.local
 .env.production
 
 # Google Services (Firebase)
 google-services.json
 GoogleService-Info.plist
+
+# SECRET
+android/gradle.properties
+.env
 
 # testing
 /coverage

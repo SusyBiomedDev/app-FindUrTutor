@@ -24,7 +24,7 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
     if (onToggleBookmark) onToggleBookmark();
   };
 
-  const abrirPubMed = () => {
+  const openPubMed = () => {
     let url = '';
     if (item.pmid) {
       url = `https://pubmed.ncbi.nlm.nih.gov/${item.pmid}`;
@@ -38,7 +38,7 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
 
   // Abre o Maps nativo
   // Usa o nome + instituição do investigador como query de pesquisa.
-  const abrirMaps = () => {
+  const openMaps = () => {
     const query = encodeURIComponent(item.nome || item.name || '');
     const url =
       Platform.OS === 'android'
@@ -61,12 +61,12 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
       <View style={styles.cardHeader}>
         <View style={styles.row}>
           <TouchableOpacity
-            onPress={abrirMaps}
+            onPress={openMaps}
             accessibilityLabel={`See location of ${item.nome} on the map`}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Icon name="map-marker-outline" size={width * 0.06} color={colors.accent} />
           </TouchableOpacity>
-          <Text style={styles.verMapaText}>View article</Text>
+          <Text style={styles.seeMapText}>View location</Text>
         </View>
 
         <TouchableOpacity onPress={handlePress}>
@@ -79,7 +79,7 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.centroText}>{item.nome}</Text>
+        <Text style={styles.centerText}>{item.nome}</Text>
         <Text style={styles.areaText}>Area: {item.area}</Text>
 
         <View style={styles.emailRow}>
@@ -88,12 +88,12 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
         </View>
 
         <TouchableOpacity
-          style={styles.maisDetalhesBtn}
-          onPress={abrirPubMed}
+          style={styles.moredetailsBtn}
+          onPress={openPubMed}
           disabled={!item.pmid && !item.doi}>
           <Text
             style={[
-              styles.maisDetalhesText,
+              styles.moredetailsText,
               !item.pmid && !item.doi && styles.disabledText,
             ]}>
             More details
@@ -124,18 +124,18 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     flexDirection: 'row',
     alignItems: 'center',
   },
-  verMapaText: {
-    color: colors.textOnCard,
-    marginLeft: width * 0.02,
+  seeMapText: {
+    color: '#FFF',
+    marginLeft: 8,
     fontWeight: '600',
     fontSize: width * 0.038,
   },
   cardContent: {
     marginTop: height * 0.006,
   },
-  centroText: {
-    color: colors.textOnCard,
-    fontSize: width * 0.045,
+  centerText: {
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: 'bold',
   },
   areaText: {
@@ -153,12 +153,12 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     marginLeft: width * 0.02,
     fontSize: width * 0.035,
   },
-  maisDetalhesBtn: {
-    marginTop: height * 0.025,
+  moredetailsBtn: {
+    marginTop: 20,
     alignSelf: 'flex-start',
   },
-  maisDetalhesText: {
-    color: colors.accent,
+  moredetailsText: {
+    color: '#9D86E1',
     textDecorationLine: 'underline',
     fontSize: width * 0.04,
     fontWeight: '500',
