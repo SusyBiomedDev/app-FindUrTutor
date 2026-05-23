@@ -51,7 +51,7 @@ export default function AppNavigator() {
       />
 
 
-      {/* Tab do mapa — abre o MapScreen com os marcadores dos investigadores */}
+
       <Tab.Screen
         name="Map"
         component={MapScreen}
