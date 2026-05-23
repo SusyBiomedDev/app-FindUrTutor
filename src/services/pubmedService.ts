@@ -27,6 +27,7 @@ export async function procurarPubmed(
   userEmail = 'noemail@example.com',
   retstart = 0,
 ): Promise<{ ids: string[]; total: number }> {
+  if (!keyword?.trim()) return { ids: [], total: 0 };
   const currentYear = new Date().getFullYear();
   const minYear = currentYear - 10;
   const searchTerm = `${keyword} AND ${minYear}:${currentYear}[Publication Date]`;
