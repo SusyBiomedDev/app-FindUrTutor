@@ -1,24 +1,51 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StyleSheet, Platform } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SavedScreen from '../screens/SavedScreen';
 import HomeScreen from '../screens/HomeScreen';
 import TableScreen from '../screens/TableScreen';
 import SettingsScreen from '../screens/SettingScreen';
 import MapScreen from '../screens/MapScreen';
+import AboutScreen from '../screens/AboutScreen';
+import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-export default function AppNavigator() {
+function TabNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#d3d3d3',
-        tabBarInactiveTintColor: '#000000',
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarActiveTintColor: colors.tabBarActive,
+        tabBarInactiveTintColor: colors.tabBarInactive,
+        tabBarStyle: {
+          position: 'absolute',
+          bottom: 50,
+          marginHorizontal: 20,
+          height: 60,
+          backgroundColor: colors.tabBar,
+          borderRadius: 50,
+          borderTopWidth: 0,
+          paddingBottom: 0,
+          paddingTop: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+          ...Platform.select({
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 5,
+            },
+            android: { elevation: 8 },
+          }),
+        },
+        tabBarLabelStyle: { display: 'none' },
       }}>
       <Tab.Screen
         name="Home"
@@ -29,7 +56,6 @@ export default function AppNavigator() {
           ),
         }}
       />
-
       <Tab.Screen
         name="TableScreen"
         component={TableScreen}
@@ -39,7 +65,6 @@ export default function AppNavigator() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Saved"
         component={SavedScreen}
@@ -49,9 +74,6 @@ export default function AppNavigator() {
           ),
         }}
       />
-
-
-      {/* Tab do mapa — abre o MapScreen com os marcadores dos investigadores */}
       <Tab.Screen
         name="Map"
         component={MapScreen}
@@ -74,33 +96,11 @@ export default function AppNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabBar: {
-    position: 'absolute',
-    bottom: 50,
-    marginHorizontal: 20,
-    height: 60,
-    backgroundColor: '#6246ea',
-    borderRadius: 50,
-    borderTopWidth: 0,
-    paddingBottom: 0,
-    paddingTop: 10,
-    marginTop: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  tabBarLabel: {
-    display: 'none',
-  },
-});
+export default function AppNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Tabs" component={TabNavigator} />
+      <Stack.Screen name="About" component={AboutScreen} />
+    </Stack.Navigator>
+  );
+}

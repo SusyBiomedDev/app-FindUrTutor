@@ -6,16 +6,6 @@ import { Alert } from 'react-native';
 
 export const AppHeader = () => (
   <View style={styles.container}>
-
-
-    <TouchableOpacity 
-        style={styles.notificationIcon} 
-        onPress={() => Alert.alert('You have new notifications!')}
-      >
-        <Icon name="notifications-outline" size={25} color="#000" />
-      
-        <View style={styles.dot} />
-      </TouchableOpacity>
     
     <Text style={styles.logoText}>FindUrTutor</Text>
 
@@ -34,7 +24,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     marginTop: 20,
-    paddingVertical: 20,    
+    paddingVertical: 20,
   },
   notificationIcon: {
     position: 'absolute',
@@ -44,16 +34,12 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 30,
     fontFamily: 'cursive',
-    color: '#6246ea',  
-    marginTop: 80,
-    marginLeft: 30,   
+    color: '#6246ea',
   },
   Athom: {
     width: 50,
     height: 50,
-    marginRight: 40,
-    marginLeft: 5,
-    marginTop: 90,
+    marginLeft: 8,
   },
   dot: {
     position: 'absolute',

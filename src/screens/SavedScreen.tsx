@@ -1,19 +1,17 @@
-
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, } from 'react-native';
+import { View, Text, StyleSheet, FlatList, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
-import { useSaved, SavedItem, } from '../context/SavedContext';
+import { useSaved, SavedItem } from '../context/SavedContext';
+import { useTheme, AppColors } from '../context/ThemeContext';
 
 const SavedScreen = () => {
   const { savedItems, toggleSaved } = useSaved();
+  const { width, height } = useWindowDimensions();
+  const { colors } = useTheme();
+  const styles = createStyles(width, height, colors);
 
-  const renderItem = ({
-    item,
-  }: {
-    item: SavedItem;
-  }) => (
+  const renderItem = ({ item }: { item: SavedItem }) => (
     <CardItem
       item={item}
       initialMarked={true}
@@ -22,23 +20,16 @@ const SavedScreen = () => {
   );
 
   return (
-    <View style={[globalStyles.screen, styles.container]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Saved</Text>
-
-        <Icon
-          name="bookmark-check"
-          size={28}
-          color="#6200EE"
-        />
+        <Icon name="bookmark-check" size={width * 0.07} color={colors.accent} />
       </View>
 
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
           {savedItems.length}{' '}
-          {savedItems.length === 1
-            ? 'Saved item'
-            : 'Saved items'}
+          {savedItems.length === 1 ? 'Saved item' : 'Saved items'}
         </Text>
       </View>
 
@@ -48,17 +39,12 @@ const SavedScreen = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           styles.listPadding,
-          savedItems.length === 0 && { flex: 1, },
+          savedItems.length === 0 && { flex: 1 },
         ]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon
-              name="bookmark-off-outline"
-              size={50}
-              color="#CCC"
-            />
-
+            <Icon name="bookmark-off-outline" size={width * 0.13} color="#CCC" />
             <Text style={styles.emptyText}>
               You haven't saved any centers/tutors yet.
             </Text>
@@ -69,54 +55,47 @@ const SavedScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (width: number, height: number, colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: height * 0.06,
+    backgroundColor: colors.background,
   },
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-
-    marginBottom: 20,
+    paddingHorizontal: width * 0.05,
+    marginBottom: height * 0.025,
   },
-
   title: {
-    fontSize: 28,
+    fontSize: width * 0.07,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.text,
   },
-
   statsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 15,
+    paddingHorizontal: width * 0.05,
+    marginBottom: height * 0.018,
   },
-
   statsText: {
-    fontSize: 14,
-    color: '#6200EE',
+    fontSize: width * 0.035,
+    color: colors.text,
     fontWeight: '600',
   },
-
   listPadding: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: width * 0.05,
+    paddingBottom: height * 0.025,
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   emptyText: {
-    marginTop: 10,
+    marginTop: height * 0.012,
     textAlign: 'center',
-    color: '#999',
-    fontSize: 16,
+    color: colors.textMuted,
+    fontSize: width * 0.04,
   },
 });
 
