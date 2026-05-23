@@ -9,6 +9,7 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
   const [email, setEmail] = useState('');
+   const [useLocation, setUseLocation] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -43,7 +44,9 @@ export default function HomeScreen() {
         />
       </View>
 
-      <LocationSwitch />
+      <LocationSwitch
+       value={useLocation}
+      onChange={setUseLocation} />
 
       <View style={styles.ButtonResultText}>
         <TouchableOpacity

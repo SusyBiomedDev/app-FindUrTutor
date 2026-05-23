@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
 
-export const LocationSwitch = () => {
-  const [isEnabled, setIsEnabled] = useState(true);
+type Props = {
+  value: boolean;
+  onChange: (value: boolean) => void;
+};
+
+export const LocationSwitch = ({ value, onChange }: Props) => {
   return (
     <View style={styles.container}>
       <Switch
         trackColor={{ false: "#767577", true: "#6246ea" }}
-        thumbColor={isEnabled ? "#fff" : "#f4f3f4"}
-        onValueChange={() => setIsEnabled(!isEnabled)}
-        value={isEnabled}
+        thumbColor={value ? "#fff" : "#f4f3f4"}
+        onValueChange={onChange}
+        value={value}
       />
-      <Text style={styles.text}>Use my location</Text>
+      <Text style={styles.text}>Usar a minha localização</Text>
     </View>
   );
 };
