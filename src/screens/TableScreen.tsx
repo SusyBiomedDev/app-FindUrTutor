@@ -1,9 +1,10 @@
+/* eslint-disable no-dupe-keys */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { globalStyles } from '../styles/globalStyles';
 import CardItem from '../components/CardItem';
 import { useSaved } from '../context/SavedContext';
+import { useTheme, AppColors } from '../context/ThemeContext';
 import { procurarPubmed, extrairCorrespondingAuthors } from '../services/pubmedService';
 
 const PAGE_SIZE = 100;
@@ -16,7 +17,10 @@ const TableScreen = ({ route }: { route: any }) => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { toggleSaved, isSaved } = useSaved();
+  const { toggleSaved } = useSaved();
+  const { width, height } = useWindowDimensions();
+  const { colors } = useTheme();
+  const styles = createStyles(width, height, colors);
 
   useEffect(() => {
     setPage(1);
@@ -24,6 +28,7 @@ const TableScreen = ({ route }: { route: any }) => {
 
   useEffect(() => {
     async function loadResults() {
+      if (!keyword?.trim()) return;
       setLoading(true);
       setError(null);
 
@@ -34,7 +39,7 @@ const TableScreen = ({ route }: { route: any }) => {
 
         if (!ids || ids.length === 0) {
           setData([]);
-          setError('No articles found for this keyword in the last 10 years.');
+          setError('No articles found for this keyword.');
           setLoading(false);
           return;
         }
@@ -66,27 +71,27 @@ const TableScreen = ({ route }: { route: any }) => {
       }
     }
 
-    if (keyword) loadResults();
+    loadResults();
   }, [email, keyword, page]);
 
   const renderItem = ({ item }: { item: any }) => (
     <CardItem
       item={item}
-      initialMarked={isSaved(item.id)}
+      initialMarked={false}
       onToggleBookmark={() => toggleSaved(item)}
     />
   );
 
   return (
-    <View style={[globalStyles.screen, styles.container]}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Results for "{keyword}"</Text>
-        <Icon name="magnify" size={28} color="#6200EE" />
+        <Icon name="magnify" size={28} color={colors.accent} />
       </View>
 
       {loading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#6200EE" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.statusText}>Searching for articles...</Text>
         </View>
       ) : error ? (
@@ -111,9 +116,8 @@ const TableScreen = ({ route }: { route: any }) => {
         <TouchableOpacity
           style={[styles.pageBtn, page <= 1 && styles.pageBtnDisabled]}
           onPress={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page <= 1 || loading}
-        >
-          <Icon name="chevron-left" size={27} color={page <= 1 ? '#ccc' : '#6200EE'} />
+          disabled={page <= 1 || loading}>
+          <Icon name="chevron-left" size={27} color={page <= 1 ? '#ccc' : colors.accent} />
         </TouchableOpacity>
 
         <Text style={styles.pageLabel}>
@@ -123,37 +127,37 @@ const TableScreen = ({ route }: { route: any }) => {
         <TouchableOpacity
           style={[styles.pageBtn, page >= totalPages && styles.pageBtnDisabled]}
           onPress={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page >= totalPages || loading}
-        >
-          <Icon name="chevron-right" size={27} color={page >= totalPages ? '#ccc' : '#6200EE'} />
+          disabled={page >= totalPages || loading}>
+          <Icon name="chevron-right" size={27} color={page >= totalPages ? '#ccc' : colors.accent} />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (width: number, height: number, colors: AppColors) => StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 50,
     flex: 1,
+    paddingHorizontal: width * 0.05,
+    paddingTop: height * 0.06,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: height * 0.025,
     justifyContent: 'space-between',
   },
   title: {
-    fontSize: 26,
+    fontSize: width * 0.065,
     fontWeight: 'bold',
-    color: '#333',
-    marginTop: 20,
+    marginTop: 4,
+    color: colors.text,
     flex: 1,
-    marginRight: 10,
+    marginRight: 8,
   },
   listPadding: {
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   loader: {
     flex: 1,
@@ -162,8 +166,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     marginTop: 12,
-    color: '#333',
-    fontSize: 16,
+    color: colors.text,
+    fontSize: width * 0.04,
     textAlign: 'center',
   },
   pagination: {
