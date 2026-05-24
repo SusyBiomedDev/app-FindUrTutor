@@ -74,6 +74,7 @@ function TabNavigator() {
           ),
         }}
       />
+
       <Tab.Screen
         name="Map"
         component={MapScreen}
