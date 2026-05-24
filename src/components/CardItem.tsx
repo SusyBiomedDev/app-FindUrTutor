@@ -39,7 +39,8 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
   // Abre o Maps nativo
   // Usa o nome + instituição do investigador como query de pesquisa.
   const openMaps = () => {
-    const query = encodeURIComponent(item.nome || item.name || '');
+    const affiliation = (item.Afiliacao || '').replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, '').trim();
+    const query = encodeURIComponent(affiliation || item.nome || item.name || '');
     const url =
       Platform.OS === 'android'
         ? `maps://?q=${query}`
