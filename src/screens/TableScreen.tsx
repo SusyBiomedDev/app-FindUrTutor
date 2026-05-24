@@ -126,23 +126,21 @@ const TableScreen = ({ route }: { route: any }) => {
         </View>
 
       ) : (
-        // Lista com paginação no rodapé
         <FlatList
           data={data}
           renderItem={renderItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listPadding}
           showsVerticalScrollIndicator={false}
-          ListFooterComponent={
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              loading={loading}
-              onPageChange={newPage => setPage(newPage)}
-            />
-          }
         />
       )}
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        loading={loading}
+        onPageChange={newPage => setPage(newPage)}
+      />
 
     </View>
   );
@@ -171,7 +169,7 @@ const createStyles = (width: number, height: number, colors: AppColors) =>
       marginRight: 8,
     },
     listPadding: {
-      paddingBottom: 140,
+      paddingBottom: height * 0.1,
     },
     loader: {
       flex:           1,

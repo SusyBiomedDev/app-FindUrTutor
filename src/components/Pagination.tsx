@@ -86,7 +86,7 @@ const Pagination: React.FC<PaginationProps> = ({
             // Ellipsis — não clicável
             <View key={`ellipsis-${index}`} style={styles.ellipsis}>
               <Text style={[styles.ellipsisText, { color: isDark ? '#555' : '#9D86E1' }]}>
-                ···
+                …
               </Text>
             </View>
           ) : (
@@ -151,8 +151,9 @@ const styles = StyleSheet.create({
     justifyContent:    'center',
     paddingVertical:   14,
     paddingHorizontal: 8,
-    borderTopWidth:    1,
+    borderTopWidth:    4,
     gap:               4,
+    marginBottom:      100, // Espaço para o footer
   },
   navBtn: {
     width:            36,
