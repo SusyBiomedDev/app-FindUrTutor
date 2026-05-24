@@ -18,7 +18,7 @@ export const LocationSwitch = ({ value, onChange }: Props) => {
         onValueChange={onChange}
         value={value}
       />
-      <Text style={[styles.text, { color: colors.text }]}>Usar a minha localização</Text>
+      <Text style={styles.text}>Use my current location</Text>
     </View>
   );
 };
