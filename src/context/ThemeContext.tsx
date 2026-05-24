@@ -27,7 +27,7 @@ const darkColors = {
   primary: '#9D86E1',
   accent: '#9D86E1',
   text: '#ffffff',
-  textLight: '#aaaaaa',
+  textLight: '#9D86E1',
   textMuted: '#666666',
   textOnCard: '#ffffff',
   border: '#333333',
