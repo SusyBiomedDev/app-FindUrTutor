@@ -63,6 +63,10 @@ yarn-error.log
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> feature/Uri
 # Environment variables
 .env.local
 .env.production
@@ -74,7 +78,6 @@ GoogleService-Info.plist
 # SECRET
 android/gradle.properties
 .env
-
 # testing
 /coverage
 

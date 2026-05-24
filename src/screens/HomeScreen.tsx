@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity, Text, Alert, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, TextInput, TouchableOpacity, Text, Alert, useWindowDimensions, Platform, PermissionsAndroid } from 'react-native';
 import { AppHeader } from '../components/AppHeader';
 import { LocationSwitch } from '../components/LocationSwitch';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, AppColors } from '../context/ThemeContext';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -14,6 +15,53 @@ export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
   const styles = createStyles(width, height, colors);
+
+  useEffect(() => {
+    if (!useLocation) return;
+
+    const requestAndFetch = async () => {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission denied', 'Location permission is required.');
+          setUseLocation(false);
+          return;
+        }
+      }
+
+      Geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const { latitude, longitude } = pos.coords;
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              { headers: { 'Accept-Language': 'en', 'User-Agent': 'FindUrTutor/1.0' } },
+            );
+            const data = await res.json();
+            const country = data?.address?.country || '';
+            setLocation(country);
+          } catch {
+            Alert.alert('Error', 'Could not determine location name.');
+            setUseLocation(false);
+          }
+        },
+        () => {
+          Alert.alert('Error', 'Could not get current position.');
+          setUseLocation(false);
+        },
+        { enableHighAccuracy: false, timeout: 10000 },
+      );
+    };
+
+    requestAndFetch();
+  }, [useLocation]);
+
+  const handleLocationChange = (text: string) => {
+    setLocation(text);
+    if (useLocation) setUseLocation(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -33,7 +81,7 @@ export default function HomeScreen() {
       <View style={styles.filterBar}>
         <TextInput
           value={location}
-          onChangeText={setLocation}
+          onChangeText={handleLocationChange}
           placeholder="Location filter (optional)"
           placeholderTextColor="#5f5f5fac"
           style={styles.input}

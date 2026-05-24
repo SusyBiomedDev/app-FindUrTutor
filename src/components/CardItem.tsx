@@ -39,7 +39,8 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
   // Abre o Maps nativo
   // Usa o nome + instituição do investigador como query de pesquisa.
   const openMaps = () => {
-    const query = encodeURIComponent(item.nome || item.name || '');
+    const affiliation = (item.Afiliacao || '').replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, '').trim();
+    const query = encodeURIComponent(affiliation || item.nome || item.name || '');
     const url =
       Platform.OS === 'android'
         ? `maps://?q=${query}`
@@ -125,8 +126,9 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     alignItems: 'center',
   },
   seeMapText: {
-    color: '#FFF',
-    marginLeft: 8,
+
+    color: colors.textOnCard,
+    marginLeft: width * 0.02,
     fontWeight: '600',
     fontSize: width * 0.038,
   },
@@ -134,8 +136,8 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     marginTop: height * 0.006,
   },
   centerText: {
-    color: '#FFF',
-    fontSize: 18,
+    color: colors.textOnCard,
+    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
   areaText: {
@@ -153,12 +155,12 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     marginLeft: width * 0.02,
     fontSize: width * 0.035,
   },
-  moredetailsBtn: {
-    marginTop: 20,
+    moredetailsBtn: {
+    marginTop: height * 0.025,
     alignSelf: 'flex-start',
   },
   moredetailsText: {
-    color: '#9D86E1',
+    color: colors.accent,
     textDecorationLine: 'underline',
     fontSize: width * 0.04,
     fontWeight: '500',

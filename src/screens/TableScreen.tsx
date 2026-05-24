@@ -18,12 +18,13 @@ const PAGE_SIZE = 100;
 
 const TableScreen = ({ route }: { route: any }) => {
   const keyword = route?.params?.keyword;
-  const email   = route?.params?.email;
 
-  const [data, setData]             = useState<any[]>([]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState<string | null>(null);
-  const [page, setPage]             = useState(1);
+  const email = route?.params?.email;
+  const location = route?.params?.location as string | undefined;
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const { toggleSaved } = useSaved();
@@ -57,7 +58,7 @@ const TableScreen = ({ route }: { route: any }) => {
           return;
         }
 
-        const results = await extrairCorrespondingAuthors(ids, 100, email);
+        const results = await extrairCorrespondingAuthors(ids, 100, email, location);
 
         if (!results || results.length === 0) {
           setData([]);
@@ -72,9 +73,11 @@ const TableScreen = ({ route }: { route: any }) => {
             nome:  item.Nome,
             area:  item.Título,
             email: item.Email,
-            doi:   item.DOI,
-            pmid:  item.PMID,
-          })),
+
+            Afiliacao: item.Afiliacao,
+            doi: item.DOI,
+            pmid: item.PMID,
+          }))
         );
 
       } catch (err: any) {
