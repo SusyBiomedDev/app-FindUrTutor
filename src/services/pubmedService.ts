@@ -44,13 +44,13 @@ export async function procurarPubmed(
   };
 }
 
-export async function extrairCorrespondingAuthors(idList: string[], lote = 100, userEmail = 'noemail@example.com') {
+export async function extrairCorrespondingAuthors(idList: string[], lote = 100, userEmail = 'noemail@example.com', locationFilter?: string) {
   const resultados: Array<{
     id: string;
     Nome: string;
     Email: string;
     Título: string;
-    Afiliação: string;
+    Afiliacao: string;
     DOI?: string;
     PMID?: string;
   }> = [];
@@ -105,7 +105,8 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
 
             if (!affiliation) continue;
 
-            const hasCountry = LOCAIS_ALVO.some(pais =>
+            const filterTerms = locationFilter?.trim() ? [locationFilter.trim()] : LOCAIS_ALVO;
+            const hasCountry = filterTerms.some(pais =>
               affiliation.toLowerCase().includes(pais.toLowerCase())
             );
             if (!hasCountry) continue;
@@ -123,7 +124,7 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
               Nome: authorName,
               Email: email,
               Título: title,
-              Afiliação: affiliation,
+              Afiliacao: affiliation,
               DOI: doi || undefined,
               PMID: pmid || undefined,
             });
