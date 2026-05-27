@@ -126,9 +126,9 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     alignItems: 'center',
   },
   seeMapText: {
+
     color: colors.textOnCard,
     marginLeft: width * 0.02,
-
     fontWeight: '600',
     fontSize: width * 0.038,
   },
@@ -155,14 +155,12 @@ const createStyles = (width: number, height: number, colors: AppColors) => Style
     marginLeft: width * 0.02,
     fontSize: width * 0.035,
   },
-
-   moredetailsBtn: {
+    moredetailsBtn: {
     marginTop: height * 0.025,
     alignSelf: 'flex-start',
   },
   moredetailsText: {
     color: colors.accent,
-
     textDecorationLine: 'underline',
     fontSize: width * 0.04,
     fontWeight: '500',

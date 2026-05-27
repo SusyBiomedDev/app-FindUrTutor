@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image,} from 'react-native';
 import Athom from '../assets/images/athom.png';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { Alert } from 'react-native';
+
+
 
 export const AppHeader = () => (
   <View style={styles.container}>

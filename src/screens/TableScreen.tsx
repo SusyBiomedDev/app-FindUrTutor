@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  useWindowDimensions,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CardItem from '../components/CardItem';
+import Pagination from '../components/Pagination';
 import { useSaved } from '../context/SavedContext';
 import { useTheme, AppColors } from '../context/ThemeContext';
 import { procurarPubmed, extrairCorrespondingAuthors } from '../services/pubmedService';
@@ -22,13 +30,16 @@ const TableScreen = ({ route }: { route: any }) => {
   const { colors } = useTheme();
   const styles = createStyles(width, height, colors);
 
+  // Volta à página 1 quando a keyword muda
   useEffect(() => {
     setPage(1);
   }, [keyword]);
 
+  // Carrega resultados ao mudar de página
   useEffect(() => {
     async function loadResults() {
       if (!keyword?.trim()) return;
+
       setLoading(true);
       setError(null);
 
@@ -54,18 +65,20 @@ const TableScreen = ({ route }: { route: any }) => {
         }
 
         setData(
-          results.map((item) => ({
-            id: item.id,
-            nome: item.Nome,
-            area: item.Título,
+          results.map(item => ({
+            id:    item.id,
+            nome:  item.Nome,
+            area:  item.Título,
             email: item.Email,
+
             Afiliacao: item.Afiliacao,
             doi: item.DOI,
             pmid: item.PMID,
           }))
         );
+
       } catch (err: any) {
-        console.error('Erro na busca:', err);
+        console.error('Error on the search:', err);
         setError(err?.message || 'Error loading results.');
       } finally {
         setLoading(false);
@@ -73,7 +86,7 @@ const TableScreen = ({ route }: { route: any }) => {
     }
 
     loadResults();
-  }, [email, keyword, page]);
+  }, [email, keyword, location, page]);
 
   const renderItem = ({ item }: { item: any }) => (
     <CardItem
@@ -85,11 +98,14 @@ const TableScreen = ({ route }: { route: any }) => {
 
   return (
     <View style={styles.container}>
+
+      {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.title}>Results for "{keyword}"</Text>
         <Icon name="magnify" size={28} color={colors.accent} />
       </View>
 
+      {/* Loading */}
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={colors.accent} />
@@ -107,94 +123,59 @@ const TableScreen = ({ route }: { route: any }) => {
         <FlatList
           data={data}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           contentContainerStyle={styles.listPadding}
           showsVerticalScrollIndicator={false}
         />
       )}
 
-      <View style={styles.pagination}>
-        <TouchableOpacity
-          style={[styles.pageBtn, page <= 1 && styles.pageBtnDisabled]}
-          onPress={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page <= 1 || loading}>
-          <Icon name="chevron-left" size={27} color={page <= 1 ? '#ccc' : colors.accent} />
-        </TouchableOpacity>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        loading={loading}
+        onPageChange={newPage => setPage(newPage)}
+      />
 
-        <Text style={styles.pageLabel}>
-          Page {page} / {totalPages}
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.pageBtn, page >= totalPages && styles.pageBtnDisabled]}
-          onPress={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page >= totalPages || loading}>
-          <Icon name="chevron-right" size={27} color={page >= totalPages ? '#ccc' : colors.accent} />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
 
-const createStyles = (width: number, height: number, colors: AppColors) => StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: width * 0.05,
-    paddingTop: height * 0.06,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: height * 0.025,
-    justifyContent: 'space-between',
-  },
-  title: {
-    fontSize: width * 0.065,
-    fontWeight: 'bold',
-    marginTop: 4,
-    color: colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  listPadding: {
-    paddingBottom: 16,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusText: {
-    marginTop: 12,
-    color: colors.text,
-    fontSize: width * 0.04,
-    textAlign: 'center',
-  },
-  pagination: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: 16,
-    marginBottom: height * 0.15,
-  },
-  pageBtn: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-  },
-  pageBtnDisabled: {
-    backgroundColor: colors.section,
-  },
-  pageLabel: {
-    fontSize: width * 0.038,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'center',
-  },
-});
+const createStyles = (width: number, height: number, colors: AppColors) =>
+  StyleSheet.create({
+    container: {
+      flex:              1,
+      paddingHorizontal: width * 0.05,
+      paddingTop:        height * 0.06,
+      backgroundColor:   colors.background,
+    },
+    header: {
+      flexDirection:  'row',
+      alignItems:     'center',
+      marginBottom:   height * 0.025,
+      justifyContent: 'space-between',
+    },
+    title: {
+      fontSize:   width * 0.065,
+      fontWeight: 'bold',
+      marginTop:  4,
+      color:      colors.text,
+      flex:       1,
+      marginRight: 8,
+    },
+    listPadding: {
+      paddingBottom: height * 0.1,
+    },
+    loader: {
+      flex:           1,
+      justifyContent: 'center',
+      alignItems:     'center',
+    },
+    statusText: {
+      marginTop: 12,
+      color:     colors.text,
+      fontSize:  width * 0.04,
+      textAlign: 'center',
+    },
+  });
 
 export default TableScreen;

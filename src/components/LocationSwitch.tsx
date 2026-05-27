@@ -25,5 +25,5 @@ export const LocationSwitch = ({ value, onChange }: Props) => {
 
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-  text: { marginLeft: 10, fontWeight: 'bold' },
+  text: { marginLeft: 10, fontWeight: 'bold', color: '#fff' },
 });
