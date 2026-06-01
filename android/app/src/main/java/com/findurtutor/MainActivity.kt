@@ -19,7 +19,7 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
 
-    // ✅ BootSplash correto
+    // BootSplash correto
     RNBootSplash.init(this, R.style.BootTheme)
 
     super.onCreate(savedInstanceState)
