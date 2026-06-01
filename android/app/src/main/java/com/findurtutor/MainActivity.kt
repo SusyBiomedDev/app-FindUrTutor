@@ -13,10 +13,16 @@ class MainActivity : ReactActivity() {
    */
   override fun getMainComponentName(): String = "FindUrTutor"
 
-  /**
-   * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
-   * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
-   */
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+
+    // BootSplash correto
+    RNBootSplash.init(this, R.style.BootTheme)
+
+    super.onCreate(savedInstanceState)
+  }
+
+
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 }
