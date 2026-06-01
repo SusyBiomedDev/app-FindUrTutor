@@ -7,21 +7,7 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
 
-  /**
-   * Returns the name of the main component registered from JavaScript. This is used to schedule
-   * rendering of the component.
-   */
   override fun getMainComponentName(): String = "FindUrTutor"
-
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-
-    // BootSplash correto
-    RNBootSplash.init(this, R.style.BootTheme)
-
-    super.onCreate(savedInstanceState)
-  }
-
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
