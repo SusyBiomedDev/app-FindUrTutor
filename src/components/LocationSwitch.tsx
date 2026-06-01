@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Switch, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
-export const LocationSwitch = () => {
-  const [isEnabled, setIsEnabled] = useState(true);
+type Props = {
+  value: boolean;
+  onChange: (value: boolean) => void;
+};
+
+export const LocationSwitch = ({ value, onChange }: Props) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       <Switch
-        trackColor={{ false: "#767577", true: "#6246ea" }}
-        thumbColor={isEnabled ? "#fff" : "#f4f3f4"}
-        onValueChange={() => setIsEnabled(!isEnabled)}
-        value={isEnabled}
+        trackColor={{ false: "#767577", true: colors.primary }}
+        thumbColor={value ? "#fff" : "#f4f3f4"}
+        onValueChange={onChange}
+        value={value}
       />
-      <Text style={styles.text}>Use my location</Text>
+      <Text style={styles.text}>Use my current location</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-  text: { marginLeft: 10, fontWeight: 'bold' }
+  text: { marginLeft: 10, fontWeight: 'bold', color: '#fff' },
 });

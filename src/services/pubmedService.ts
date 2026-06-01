@@ -27,6 +27,7 @@ export async function procurarPubmed(
   userEmail = 'noemail@example.com',
   retstart = 0,
 ): Promise<{ ids: string[]; total: number }> {
+  if (!keyword?.trim()) return { ids: [], total: 0 };
   const currentYear = new Date().getFullYear();
   const minYear = currentYear - 10;
   const searchTerm = `${keyword} AND ${minYear}:${currentYear}[Publication Date]`;
@@ -43,13 +44,13 @@ export async function procurarPubmed(
   };
 }
 
-export async function extrairCorrespondingAuthors(idList: string[], lote = 100, userEmail = 'noemail@example.com') {
+export async function extrairCorrespondingAuthors(idList: string[], lote = 100, userEmail = 'noemail@example.com', locationFilter?: string) {
   const resultados: Array<{
     id: string;
     Nome: string;
     Email: string;
     Título: string;
-    Afiliação: string;
+    Afiliacao: string;
     DOI?: string;
     PMID?: string;
   }> = [];
@@ -104,7 +105,8 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
 
             if (!affiliation) continue;
 
-            const hasCountry = LOCAIS_ALVO.some(pais =>
+            const filterTerms = locationFilter?.trim() ? [locationFilter.trim()] : LOCAIS_ALVO;
+            const hasCountry = filterTerms.some(pais =>
               affiliation.toLowerCase().includes(pais.toLowerCase())
             );
             if (!hasCountry) continue;
@@ -122,7 +124,7 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
               Nome: authorName,
               Email: email,
               Título: title,
-              Afiliação: affiliation,
+              Afiliacao: affiliation,
               DOI: doi || undefined,
               PMID: pmid || undefined,
             });

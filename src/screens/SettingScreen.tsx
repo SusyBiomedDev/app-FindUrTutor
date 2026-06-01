@@ -1,98 +1,66 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTheme, AppColors } from '../context/ThemeContext';
 
 const SettingsScreen: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { isDark, colors, toggleTheme } = useTheme();
+  const navigation = useNavigation<any>();
+  const styles = createStyles(colors);
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Settings</Text>
+      <Text style={styles.title}>Settings</Text>
 
-      {/* Conta */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Conta</Text>
-
-        <TouchableOpacity style={styles.item}>
-          <Text style={styles.itemText}>Editar Perfil</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.item}>
-          <Text style={styles.itemText}>Alterar Palavra-passe</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Preferências */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Preferences</Text>
 
         <View style={styles.item}>
           <Text style={styles.itemText}>Dark Mode</Text>
           <Switch
-            value={isDarkMode}
-            onValueChange={setIsDarkMode}
-          />
-        </View>
-
-        <View style={styles.item}>
-          <Text style={styles.itemText}>Notifications</Text>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#ccc', true: colors.primary }}
+            thumbColor={isDark ? '#fff' : '#f4f3f4'}
           />
         </View>
       </View>
 
-      {/* Outros */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>More</Text>
 
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('About')}>
           <Text style={styles.itemText}>About</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.item}>
-          <Text style={[styles.itemText, { color: 'red' }]}>
-            Exit
-          </Text>
+          <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 };
 
-export default SettingsScreen;
-
-const styles = StyleSheet.create({
+const createStyles = (colors: AppColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#91bedb',
+    backgroundColor: colors.background,
   },
-  header: {
+  title: {
     fontSize: 28,
     fontWeight: 'bold',
     margin: 16,
     marginTop: 50,
+    color: colors.text,
   },
   section: {
-    backgroundColor: '#e6e6e6',
+    backgroundColor: colors.section,
     marginBottom: 16,
     paddingVertical: 8,
-    
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginHorizontal: 16,
     marginBottom: 8,
-    color: '#888',
+    color: colors.textLight,
   },
   item: {
     flexDirection: 'row',
@@ -101,9 +69,16 @@ const styles = StyleSheet.create({
     minHeight: 50,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#fffafa',
+    borderTopColor: colors.border,
   },
   itemText: {
     fontSize: 16,
+    color: colors.text,
+  },
+  arrow: {
+    fontSize: 22,
+    color: colors.textLight,
   },
 });
+
+export default SettingsScreen;

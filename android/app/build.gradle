@@ -79,6 +79,9 @@ android {
 
     namespace "com.findurtutor"
     defaultConfig {
+        manifestPlaceholders = [
+        MY_GOOGLE_MAPS_KEY: project.findProperty("MY_GOOGLE_MAPS_KEY") ?: ""
+    ]
         applicationId "com.findurtutor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
