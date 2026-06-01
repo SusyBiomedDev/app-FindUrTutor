@@ -34,7 +34,7 @@ const SettingsScreen: React.FC = () => {
           <Text style={styles.arrow}>›</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </ScrollView>  
   );
 };
 

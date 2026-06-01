@@ -82,7 +82,7 @@ export default function HomeScreen() {
         <TextInput
           value={location}
           onChangeText={handleLocationChange}
-          placeholder="Location filter (optional)"
+          placeholder="Country (optional)"
           placeholderTextColor="#5f5f5fac"
           style={styles.input}
         />
@@ -103,27 +103,26 @@ export default function HomeScreen() {
        value={useLocation}
       onChange={setUseLocation} />
 
-      <View style={styles.ButtonResultText}>
-        <TouchableOpacity
-          onPress={() => {
-            if (!searchQuery.trim()) {
-              Alert.alert('Keyword necessary', 'Please enter a keyword to search');
-              return;
-            }
-            if (!email.trim()) {
-              Alert.alert('Email necessary', 'Please enter your email to continue');
-              return;
-            }
-            navigation.navigate('TableScreen', {
-              keyword: searchQuery.trim(),
-              location: location.trim(),
-              email: email.trim(),
-            });
-          }}
-        >
-          <Text style={styles.textStyle}>SEARCH</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.ButtonResultText}
+        onPress={() => {
+          if (!searchQuery.trim()) {
+            Alert.alert('Keyword necessary', 'Please enter a keyword to search');
+            return;
+          }
+          if (!email.trim()) {
+            Alert.alert('Email necessary', 'Please enter your email to continue');
+            return;
+          }
+          navigation.navigate('TableScreen', {
+            keyword: searchQuery.trim(),
+            location: location.trim(),
+            email: email.trim(),
+          });
+        }}
+      >
+        <Text style={styles.textStyle}>SEARCH</Text>
+      </TouchableOpacity>
     </View>
   );
 }

@@ -1,97 +1,169 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CardItem from '../components/CardItem';
-import Pagination from '../components/Pagination';
 import { useSaved } from '../context/SavedContext';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme, AppColors } from '../context/ThemeContext';
 import { procurarPubmed, extrairCorrespondingAuthors } from '../services/pubmedService';
 
-const PAGE_SIZE = 100;
+const PUBMED_FETCH_SIZE = 100;
+
+type ResultItem = {
+  id: string;
+  nome: string;
+  area: string;
+  email: string;
+  Afiliacao: string;
+  doi?: string;
+  pmid?: string;
+};
 
 const TableScreen = ({ route }: { route: any }) => {
-  const keyword = route?.params?.keyword;
-
-  const email = route?.params?.email;
+  const keyword  = route?.params?.keyword;
+  const email    = route?.params?.email;
   const location = route?.params?.location as string | undefined;
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
+  const [data,         setData]         = useState<ResultItem[]>([]);
+  const [pubmedOffset, setPubmedOffset] = useState(0);
+  const [pubmedTotal,  setPubmedTotal]  = useState(0);
+  const [loading,      setLoading]      = useState(false);
+  const [loadingMore,  setLoadingMore]  = useState(false);
+  const [error,        setError]        = useState<string | null>(null);
+
+  const navigation = useNavigation<any>();
+  const isFetching = useRef(false);
 
   const { toggleSaved } = useSaved();
   const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
   const styles = createStyles(width, height, colors);
 
-  // Volta à página 1 quando a keyword muda
-  useEffect(() => {
-    setPage(1);
-  }, [keyword]);
+  const mapResults = (results: any[]): ResultItem[] =>
+    results.map(item => ({
+      id:        item.id,
+      nome:      item.Nome,
+      area:      item.Título,
+      email:     item.Email,
+      Afiliacao: item.Afiliacao,
+      doi:       item.DOI,
+      pmid:      item.PMID,
+    }));
 
-  // Carrega resultados ao mudar de página
-  useEffect(() => {
-    async function loadResults() {
-      if (!keyword?.trim()) return;
 
-      setLoading(true);
-      setError(null);
+  // Carregamento inicial — mostra resultados assim que o primeiro lote chega
+  useEffect(() => {
+    if (!keyword?.trim()) return;
+
+    setData([]);
+    setPubmedOffset(0);
+    setPubmedTotal(0);
+    setError(null);
+    setLoading(true);
+    isFetching.current = false;
+
+    let cancelled = false;
+
+    async function loadInitial() {
+      let currentOffset = 0;
+      let currentTotal  = 0;
+      let foundAny      = false;
 
       try {
-        const retstart = (page - 1) * PAGE_SIZE;
+        while (true) {
+          if (cancelled) return;
+          if (currentTotal > 0 && currentOffset >= currentTotal) break;
 
-        const { ids, total } = await procurarPubmed(keyword, PAGE_SIZE, email, retstart);
-        setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+          const { ids, total } = await procurarPubmed(keyword, PUBMED_FETCH_SIZE, email, currentOffset);
+          currentTotal   = total;
+          currentOffset += PUBMED_FETCH_SIZE;
 
-        if (!ids || ids.length === 0) {
-          setData([]);
-          setError('No articles found for this keyword.');
-          setLoading(false);
-          return;
+          if (!ids || ids.length === 0) break;
+
+          const results = await extrairCorrespondingAuthors(ids, 100, email, location);
+
+          if (results && results.length > 0) {
+            const mapped = mapResults(results);
+            setData(prev => [...prev, ...mapped]);
+            setPubmedOffset(currentOffset);
+            setPubmedTotal(currentTotal);
+
+            if (!foundAny) {
+              foundAny = true;
+              setLoading(false); // mostra a lista mal chegam os primeiros resultados
+            }
+            break; // para e espera que o utilizador faça scroll
+          }
+
+          setPubmedOffset(currentOffset);
+          setPubmedTotal(currentTotal);
         }
 
-        const results = await extrairCorrespondingAuthors(ids, 100, email, location);
-
-        if (!results || results.length === 0) {
-          setData([]);
-          setError('No corresponding authors found in the target countries on this page.');
+        if (!foundAny && !cancelled) {
+          setError('No corresponding authors found in the target countries.');
           setLoading(false);
-          return;
         }
-
-        setData(
-          results.map(item => ({
-            id:    item.id,
-            nome:  item.Nome,
-            area:  item.Título,
-            email: item.Email,
-
-            Afiliacao: item.Afiliacao,
-            doi: item.DOI,
-            pmid: item.PMID,
-          }))
-        );
-
       } catch (err: any) {
-        console.error('Error on the search:', err);
-        setError(err?.message || 'Error loading results.');
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          console.error('Error on the search:', err);
+          setError(err?.message || 'Error loading results.');
+          setLoading(false);
+        }
       }
     }
 
-    loadResults();
-  }, [email, keyword, page]);
+    loadInitial();
+    return () => { cancelled = true; };
+  }, [keyword]);
 
-  const renderItem = ({ item }: { item: any }) => (
+  // Carrega mais quando o utilizador chega ao fim da lista
+  async function loadMore() {
+    if (isFetching.current || loadingMore) return;
+    if (pubmedOffset >= pubmedTotal && pubmedTotal > 0) return;
+
+    isFetching.current = true;
+    setLoadingMore(true);
+
+    let currentOffset = pubmedOffset;
+    let currentTotal  = pubmedTotal;
+
+    try {
+      while (true) {
+        if (currentTotal > 0 && currentOffset >= currentTotal) break;
+
+        const { ids, total } = await procurarPubmed(keyword, PUBMED_FETCH_SIZE, email, currentOffset);
+        currentTotal   = total;
+        currentOffset += PUBMED_FETCH_SIZE;
+
+        if (!ids || ids.length === 0) break;
+
+        const results = await extrairCorrespondingAuthors(ids, 100, email, location);
+
+        setPubmedOffset(currentOffset);
+        setPubmedTotal(currentTotal);
+
+        if (results && results.length > 0) {
+          setData(prev => [...prev, ...mapResults(results)]);
+          break; // mostra este lote e para — próximo scroll carrega mais
+        }
+      }
+    } catch (err: any) {
+      console.warn('Error loading more:', err?.message);
+    } finally {
+      setLoadingMore(false);
+      isFetching.current = false;
+    }
+  }
+
+  const renderItem = ({ item }: { item: ResultItem }) => (
     <CardItem
       item={item}
       initialMarked={false}
@@ -99,16 +171,26 @@ const TableScreen = ({ route }: { route: any }) => {
     />
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={colors.accent} />
+        <Text style={styles.footerText}>Loading more...</Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
 
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.title}>Results for "{keyword}"</Text>
-        <Icon name="magnify" size={28} color={colors.accent} />
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Icon name="magnify" size={28} color={colors.accent} />
+        </TouchableOpacity>
       </View>
 
-      {/* Loading */}
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={colors.accent} />
@@ -120,27 +202,18 @@ const TableScreen = ({ route }: { route: any }) => {
           <Text style={styles.statusText}>{error}</Text>
         </View>
 
-      ) : data.length === 0 ? (
-        <View style={styles.loader}>
-          <Text style={styles.statusText}>No results found.</Text>
-        </View>
-
       ) : (
         <FlatList
           data={data}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => `${item.id}_${index}`}
           contentContainerStyle={styles.listPadding}
           showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
         />
       )}
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        loading={loading}
-        onPageChange={newPage => setPage(newPage)}
-      />
 
     </View>
   );
@@ -161,20 +234,29 @@ const createStyles = (width: number, height: number, colors: AppColors) =>
       justifyContent: 'space-between',
     },
     title: {
-      fontSize:   width * 0.065,
-      fontWeight: 'bold',
-      marginTop:  4,
-      color:      colors.text,
-      flex:       1,
+      fontSize:    width * 0.065,
+      fontWeight:  'bold',
+      marginTop:   4,
+      color:       colors.text,
+      flex:        1,
       marginRight: 8,
     },
     listPadding: {
-      paddingBottom: height * 0.1,
+      paddingBottom: height * 0.15,
     },
     loader: {
       flex:           1,
       justifyContent: 'center',
       alignItems:     'center',
+    },
+    footer: {
+      paddingVertical: 20,
+      alignItems:      'center',
+      gap:             8,
+    },
+    footerText: {
+      color:    colors.text,
+      fontSize: width * 0.035,
     },
     statusText: {
       marginTop: 12,

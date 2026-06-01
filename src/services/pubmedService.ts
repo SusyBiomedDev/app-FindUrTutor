@@ -14,6 +14,18 @@ const LOCAIS_ALVO = [
 
 const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
+function decodeHtml(text: string): string {
+  return text
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
@@ -81,7 +93,7 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
         if (!articleData) continue;
 
         const titleRaw = articleData?.ArticleTitle;
-        const title = typeof titleRaw === 'object' ? String(titleRaw?.['#text'] || '') : String(titleRaw || '');
+        const title = decodeHtml(typeof titleRaw === 'object' ? String(titleRaw?.['#text'] || '') : String(titleRaw || ''));
 
         const articleIds: any[] = article?.PubmedData?.ArticleIdList?.ArticleId || [];
         const doiEntry = articleIds.find((id: any) => id?.['@_IdType'] === 'doi');
@@ -90,8 +102,8 @@ export async function extrairCorrespondingAuthors(idList: string[], lote = 100, 
         const authors: any[] = articleData?.AuthorList?.Author || [];
 
         for (const author of authors) {
-          const firstName = author?.ForeName || '';
-          const lastName = author?.LastName || '';
+          const firstName = decodeHtml(String(author?.ForeName || ''));
+          const lastName = decodeHtml(String(author?.LastName || ''));
           const authorName = [firstName, lastName].filter(Boolean).join(' ').trim();
           if (!authorName) continue;
 
