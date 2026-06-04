@@ -9,36 +9,9 @@ import { useTheme, AppColors } from '../context/ThemeContext';
 import { useSearch } from '../context/SearchContext';
 import Geolocation from '@react-native-community/geolocation';
 import { useIsFocused } from '@react-navigation/native';
-import { Tutor, TutorPin } from '../types/tutor';
-import { geocodeBatch } from '../services/geocodingService';
+import { TutorPin } from '../types/tutor';
+import { geocodeBatch, fetchNearbyMedicalCenters } from '../services/geocodingService';
 
-const SUGGESTED_PINS: TutorPin[] = [
-  {
-    id: 'sug-1', nome: 'Dr. Ana Costa', area: 'Cardiology',
-    email: 'ana.costa@hospital-lisboa.pt', afiliacao: 'Hospital de Santa Maria, Lisboa',
-    latitude: 38.7468, longitude: -9.1599,
-  },
-  {
-    id: 'sug-2', nome: 'Prof. João Ferreira', area: 'Oncology',
-    email: 'j.ferreira@fmup.pt', afiliacao: 'Faculdade de Medicina UP, Porto',
-    latitude: 41.1496, longitude: -8.6109,
-  },
-  {
-    id: 'sug-3', nome: 'Dr. Maria Santos', area: 'Neurology',
-    email: 'm.santos@chuc.min-saude.pt', afiliacao: 'Centro Hospitalar Universitário de Coimbra',
-    latitude: 40.2033, longitude: -8.4103,
-  },
-  {
-    id: 'sug-4', nome: 'Dr. Ricardo Almeida', area: 'Infectious Diseases',
-    email: 'r.almeida@ihmt.unl.pt', afiliacao: 'Instituto de Higiene e Medicina Tropical, Lisboa',
-    latitude: 38.7057, longitude: -9.1559,
-  },
-  {
-    id: 'sug-5', nome: 'Profa. Filipa Oliveira', area: 'Genetics',
-    email: 'filipa.oliveira@ibmc.up.pt', afiliacao: 'IBMC – Instituto de Biologia Molecular e Celular, Porto',
-    latitude: 41.1771, longitude: -8.5954,
-  },
-];
 
 export default function MapScreen() {
   const { data, loading, error, hasSearched, params, focusedPin, setFocusedPin } = useSearch();
@@ -46,7 +19,9 @@ export default function MapScreen() {
   const { width, height } = useWindowDimensions();
   const styles            = createStyles(width, height, colors);
 
-  const [pins,        setPins]        = useState<TutorPin[]>(SUGGESTED_PINS);
+  const [suggestedPins, setSuggestedPins] = useState<TutorPin[]>([]);
+
+  const [pins,        setPins]        = useState<TutorPin[]>([]);
   const [geocoding,   setGeocoding]   = useState(false);
   const [selectedPin, setSelectedPin] = useState<TutorPin | null>(null);
 
@@ -54,6 +29,25 @@ export default function MapScreen() {
   const mapRef      = useRef<MapView>(null);
   const cardAnim    = useRef(new Animated.Value(0)).current;
   const lastDataLen = useRef(0);
+
+  useEffect(() => {
+    // Start with default location immediately, then refine with GPS if available
+    fetchNearbyMedicalCenters().then(setSuggestedPins);
+
+    Geolocation.getCurrentPosition(
+      async (pos) => {
+        const nearby = await fetchNearbyMedicalCenters(pos.coords);
+        setSuggestedPins(nearby);
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 5000 },
+    );
+  }, []);
+
+  // Sync suggestedPins → pins whenever they update (and no active search)
+  useEffect(() => {
+    if (!hasSearched) setPins(suggestedPins);
+  }, [suggestedPins, hasSearched]);
 
   const showCard = useCallback((pin: TutorPin) => {
     setSelectedPin(pin);
@@ -86,7 +80,11 @@ export default function MapScreen() {
 
   // Center on focusedPin when navigating from CardItem
   useEffect(() => {
-    if (!isFocused || !focusedPin) return;
+    if (!isFocused) return;
+    if (!focusedPin) {
+      if (!hasSearched) setPins(suggestedPins);
+      return;
+    }
 
     const handleFocus = async () => {
       let pin = focusedPin;
@@ -125,7 +123,7 @@ export default function MapScreen() {
   // Geocode whenever data changes
   useEffect(() => {
     if (!hasSearched) {
-      setPins(SUGGESTED_PINS);
+      setPins(suggestedPins);
       lastDataLen.current = 0;
       return;
     }
@@ -156,9 +154,11 @@ export default function MapScreen() {
 
   const isBusy = loading || geocoding;
 
-  const getDirections = (afiliacao: string) => {
-    const query = encodeURIComponent(afiliacao);
-    const url   = `https://www.google.com/maps/dir/?api=1&destination=${query}`;
+  const getDirections = (pin: TutorPin) => {
+    const destination = (pin.latitude && pin.longitude)
+      ? `${pin.latitude},${pin.longitude}`
+      : encodeURIComponent(pin.afiliacao);
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
     Linking.openURL(url).catch(() => {});
   };
 
@@ -228,7 +228,7 @@ export default function MapScreen() {
         <View style={styles.badge}>
           <Icon name="lightbulb-on-outline" size={14} color={colors.accent} />
           <Text style={[styles.badgeText, { color: colors.text }]}>
-            Suggested researchers near you
+            Suggested centers near you
           </Text>
         </View>
       )}
@@ -284,13 +284,17 @@ export default function MapScreen() {
             </Text>
           </View>
 
-          {/* Email — tappable */}
-          <TouchableOpacity style={styles.cardRow} onPress={() => openEmail(selectedPin.email)}>
+    {/*alteration */}
+
+          {!!selectedPin.email && (
+          <TouchableOpacity style={styles.cardRow} onPress={() => openEmail(selectedPin.email!)}>
             <Icon name="email-outline" size={14} color={colors.accent} />
             <Text style={[styles.cardMeta, styles.cardLink, { color: colors.accent }]}>
               {selectedPin.email}
             </Text>
           </TouchableOpacity>
+        )}
+ 
 
           {/* DOI — tappable */}
           {!!selectedPin.doi && (
@@ -315,7 +319,7 @@ export default function MapScreen() {
           <View style={styles.cardActions}>
             <TouchableOpacity
               style={[styles.cardActionBtn, { borderColor: colors.accent }]}
-              onPress={() => getDirections(selectedPin.afiliacao)}
+              onPress={() => getDirections(selectedPin)}
             >
               <Icon name="directions" size={16} color={colors.accent} />
               <Text style={[styles.cardActionText, { color: colors.accent }]}>Directions</Text>

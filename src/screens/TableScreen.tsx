@@ -12,7 +12,7 @@ import { useSearch } from '../context/SearchContext';
 import { Tutor } from '../types/tutor';
 
 const TableScreen = () => {
-  const { params, data, loading, loadingMore, error, loadMore } = useSearch();
+  const { params, data, loading, loadingMore, error, hasSearched, loadMore } = useSearch();
 
   const navigation             = useNavigation<any>();
   const { toggleSaved }        = useSaved();
@@ -50,7 +50,13 @@ const TableScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {!hasSearched ? (
+        <View style={styles.loader}>
+          <Icon name="magnify" size={48} color={colors.accent} />
+          <Text style={styles.statusText}>Enter a keyword to search</Text>
+        </View>
+
+      ) : loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.statusText}>Searching for articles...</Text>
