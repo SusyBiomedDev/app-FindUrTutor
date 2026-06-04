@@ -1,97 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  useWindowDimensions,
+  View, Text, StyleSheet, FlatList,
+  ActivityIndicator, TouchableOpacity, useWindowDimensions,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CardItem from '../components/CardItem';
-import Pagination from '../components/Pagination';
 import { useSaved } from '../context/SavedContext';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme, AppColors } from '../context/ThemeContext';
-import { procurarPubmed, extrairCorrespondingAuthors } from '../services/pubmedService';
+import { useSearch } from '../context/SearchContext';
+import { Tutor } from '../types/tutor';
 
-const PAGE_SIZE = 100;
+const TableScreen = () => {
+  const { params, data, loading, loadingMore, error, loadMore } = useSearch();
 
-const TableScreen = ({ route }: { route: any }) => {
-  const keyword = route?.params?.keyword;
+  const navigation             = useNavigation<any>();
+  const { toggleSaved }        = useSaved();
+  const { width, height }      = useWindowDimensions();
+  const { colors }             = useTheme();
+  const styles                 = createStyles(width, height, colors);
 
-  const email = route?.params?.email;
-  const location = route?.params?.location as string | undefined;
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const { toggleSaved } = useSaved();
-  const { width, height } = useWindowDimensions();
-  const { colors } = useTheme();
-  const styles = createStyles(width, height, colors);
-
-  // Volta à página 1 quando a keyword muda
-  useEffect(() => {
-    setPage(1);
-  }, [keyword]);
-
-  // Carrega resultados ao mudar de página
-  useEffect(() => {
-    async function loadResults() {
-      if (!keyword?.trim()) return;
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const retstart = (page - 1) * PAGE_SIZE;
-
-        const { ids, total } = await procurarPubmed(keyword, PAGE_SIZE, email, retstart);
-        setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-
-        if (!ids || ids.length === 0) {
-          setData([]);
-          setError('No articles found for this keyword.');
-          setLoading(false);
-          return;
-        }
-
-        const results = await extrairCorrespondingAuthors(ids, 100, email, location);
-
-        if (!results || results.length === 0) {
-          setData([]);
-          setError('No corresponding authors found in the target countries on this page.');
-          setLoading(false);
-          return;
-        }
-
-        setData(
-          results.map(item => ({
-            id:    item.id,
-            nome:  item.Nome,
-            area:  item.Título,
-            email: item.Email,
-
-            Afiliacao: item.Afiliacao,
-            doi: item.DOI,
-            pmid: item.PMID,
-          }))
-        );
-
-      } catch (err: any) {
-        console.error('Error on the search:', err);
-        setError(err?.message || 'Error loading results.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadResults();
-  }, [email, keyword, page]);
-
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: Tutor }) => (
     <CardItem
       item={item}
       initialMarked={false}
@@ -99,16 +28,28 @@ const TableScreen = ({ route }: { route: any }) => {
     />
   );
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footer}>
+        <ActivityIndicator size="small" color={colors.accent} />
+        <Text style={styles.footerText}>Loading more...</Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
 
-      {/* Cabeçalho */}
       <View style={styles.header}>
-        <Text style={styles.title}>Results for "{keyword}"</Text>
-        <Icon name="magnify" size={28} color={colors.accent} />
+        <Text style={styles.title} numberOfLines={2}>
+          Results for "{params.keyword}"
+        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Icon name="magnify" size={28} color={colors.accent} />
+        </TouchableOpacity>
       </View>
 
-      {/* Loading */}
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color={colors.accent} />
@@ -120,27 +61,18 @@ const TableScreen = ({ route }: { route: any }) => {
           <Text style={styles.statusText}>{error}</Text>
         </View>
 
-      ) : data.length === 0 ? (
-        <View style={styles.loader}>
-          <Text style={styles.statusText}>No results found.</Text>
-        </View>
-
       ) : (
         <FlatList
           data={data}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => `${item.id}_${index}`}
           contentContainerStyle={styles.listPadding}
           showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
         />
       )}
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        loading={loading}
-        onPageChange={newPage => setPage(newPage)}
-      />
 
     </View>
   );
@@ -149,38 +81,24 @@ const TableScreen = ({ route }: { route: any }) => {
 const createStyles = (width: number, height: number, colors: AppColors) =>
   StyleSheet.create({
     container: {
-      flex:              1,
-      paddingHorizontal: width * 0.05,
-      paddingTop:        height * 0.06,
-      backgroundColor:   colors.background,
+      flex: 1, paddingHorizontal: width * 0.05,
+      paddingTop: height * 0.06, backgroundColor: colors.background,
     },
     header: {
-      flexDirection:  'row',
-      alignItems:     'center',
-      marginBottom:   height * 0.025,
-      justifyContent: 'space-between',
+      flexDirection: 'row', alignItems: 'center',
+      marginBottom: height * 0.025, justifyContent: 'space-between',
     },
     title: {
-      fontSize:   width * 0.065,
-      fontWeight: 'bold',
-      marginTop:  4,
-      color:      colors.text,
-      flex:       1,
-      marginRight: 8,
+      fontSize: width * 0.065, fontWeight: 'bold',
+      marginTop: 4, color: colors.text, flex: 1, marginRight: 8,
     },
-    listPadding: {
-      paddingBottom: height * 0.1,
-    },
-    loader: {
-      flex:           1,
-      justifyContent: 'center',
-      alignItems:     'center',
-    },
-    statusText: {
-      marginTop: 12,
-      color:     colors.text,
-      fontSize:  width * 0.04,
-      textAlign: 'center',
+    listPadding: { paddingBottom: height * 0.15 },
+    loader:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    footer:      { paddingVertical: 20, alignItems: 'center', gap: 8 },
+    footerText:  { color: colors.text, fontSize: width * 0.035 },
+    statusText:  {
+      marginTop: 12, color: colors.text,
+      fontSize: width * 0.04, textAlign: 'center',
     },
   });
 

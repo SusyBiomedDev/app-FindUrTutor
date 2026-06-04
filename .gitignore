@@ -33,6 +33,7 @@ local.properties
 .cxx/
 *.keystore
 .kotlin/
+android/gradle.properties
 
 # node.js
 #
@@ -71,8 +72,7 @@ google-services.json
 GoogleService-Info.plist
 
 # SECRET
-android/gradle.properties
-.env
+
 # testing
 /coverage
 

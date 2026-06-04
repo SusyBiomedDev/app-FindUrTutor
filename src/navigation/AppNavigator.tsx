@@ -10,6 +10,7 @@ import SettingsScreen from '../screens/SettingScreen';
 import MapScreen from '../screens/MapScreen';
 import AboutScreen from '../screens/AboutScreen';
 import { useTheme } from '../context/ThemeContext';
+import { SearchProvider } from '../context/SearchContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -21,71 +22,43 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.tabBarActive,
+        tabBarActiveTintColor:   colors.tabBarActive,
         tabBarInactiveTintColor: colors.tabBarInactive,
         tabBarStyle: {
-          position: 'absolute',
-          bottom: 50,
-          marginHorizontal: 20,
-          height: 60,
-          backgroundColor: colors.tabBar,
-          borderRadius: 50,
-          borderTopWidth: 0,
-          paddingBottom: 0,
-          paddingTop: 10,
-          alignItems: 'center',
-          justifyContent: 'center',
-          ...Platform.select({
-            android: { elevation: 8 },
-          }),
+          position: 'absolute', bottom: 50, marginHorizontal: 20,
+          height: 60, backgroundColor: colors.tabBar,
+          borderRadius: 50, borderTopWidth: 0,
+          paddingBottom: 0, paddingTop: 10,
+          alignItems: 'center', justifyContent: 'center',
+          ...Platform.select({ android: { elevation: 8 } }),
         },
         tabBarLabelStyle: { display: 'none' },
-      }}>
+      }}
+    >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="home-outline" color={color} size={26} />
-          ),
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="home-outline" color={color} size={26} /> }}
       />
       <Tab.Screen
         name="TableScreen"
         component={TableScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="magnify" color={color} size={26} />
-          ),
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="magnify" color={color} size={26} /> }}
       />
       <Tab.Screen
         name="Saved"
         component={SavedScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="bookmark-outline" color={color} size={26} />
-          ),
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="bookmark-outline" color={color} size={26} /> }}
       />
-
       <Tab.Screen
         name="Map"
         component={MapScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="map-outline" color={color} size={26} />
-          ),
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="map-outline" color={color} size={26} /> }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Icon name="cog-outline" color={color} size={26} />
-          ),
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="cog-outline" color={color} size={26} /> }}
       />
     </Tab.Navigator>
   );
@@ -93,9 +66,11 @@ function TabNavigator() {
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Tabs" component={TabNavigator} />
-      <Stack.Screen name="About" component={AboutScreen} />
-    </Stack.Navigator>
+    <SearchProvider>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Tabs" component={TabNavigator} />
+        <Stack.Screen name="About" component={AboutScreen} />
+      </Stack.Navigator>
+    </SearchProvider>
   );
 }
