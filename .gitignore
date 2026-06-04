@@ -72,8 +72,7 @@ google-services.json
 GoogleService-Info.plist
 
 # SECRET
-android/gradle.properties
-.env
+
 # testing
 /coverage
 

@@ -30,6 +30,7 @@
     "react-native-bootsplash": "^5.3.0",
     "react-native-config": "^1.6.1",
     "react-native-gesture-handler": "^2.31.2",
+    "react-native-google-places-autocomplete": "^2.6.4",
     "react-native-maps": "^1.27.2",
     "react-native-reanimated": "^4.3.1",
     "react-native-safe-area-context": "^5.8.0",
