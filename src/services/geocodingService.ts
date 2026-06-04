@@ -1,5 +1,6 @@
 import type { Tutor, TutorPin } from '../types/tutor';
 
+
 //Google Geocoding API key 
 const GOOGLE_GEOCODING_API_KEY = ''; // ← replace with your actual API key
 
@@ -60,4 +61,50 @@ export async function geocodeBatch<T extends { afiliacao: string }>(
   }
 
   return results;
+}
+
+//new addition
+
+function placeTypeLabel(types: string[]): string {
+  if (types.includes('hospital'))   return 'Hospital';
+  if (types.includes('university')) return 'University / Medical School';
+  if (types.includes('doctor'))     return 'Medical Practice';
+  return 'Medical Center';
+}
+
+export async function fetchNearbyMedicalCenters(
+  coords?: Coordinates,
+  radiusMeters = 50000,
+): Promise<TutorPin[]> {
+  const { latitude, longitude } = coords ?? { latitude: 38.7223, longitude: -9.1393 };
+
+  try {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
+      `?location=${latitude},${longitude}` +
+      `&radius=${radiusMeters}` +
+      `&keyword=hospital+medical+university+research` +
+      `&key=${GOOGLE_GEOCODING_API_KEY}`;
+
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    if (json.status !== 'OK' && json.status !== 'ZERO_RESULTS') {
+      console.warn('Places API error:', json.status);
+      return [];
+    }
+
+    return (json.results ?? []).slice(0, 12).map((place: any, i: number) => ({
+      id:        place.place_id ?? `nearby-${i}`,
+      nome:      place.name,
+      area:      placeTypeLabel(place.types ?? []),
+      email:     '',
+      afiliacao: place.vicinity ?? '',
+      latitude:  place.geometry.location.lat,
+      longitude: place.geometry.location.lng,
+    }));
+  } catch (err) {
+    console.warn('fetchNearbyMedicalCenters failed:', err);
+    return [];
+  }
 }

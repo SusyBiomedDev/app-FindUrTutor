@@ -138,6 +138,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
   // ── Load more ──────────────────────────────────────────────────────────
   const loadMore = async () => {
+    if (!currentKw.current) return;
     if (isFetching.current || loadingMore) return;
     if (pubmedOffset.current >= pubmedTotal.current && pubmedTotal.current > 0) return;
 
