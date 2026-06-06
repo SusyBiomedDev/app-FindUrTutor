@@ -1,3 +1,5 @@
+<img width="932" height="2048" alt="map" src="https://github.com/user-attachments/assets/c0a25658-af9a-4a91-9a67-ee3569e6bf31" />
+<img width="932" height="2048" alt="Home" src="https://github.com/user-attachments/assets/30e62010-91dd-4022-af3c-2430ba6dc61d" />
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
