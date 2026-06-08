@@ -17,13 +17,13 @@ size: {
 small: 12,
 body: 14,
 title: 18,
-header: 20,
+header: 20, 
 },
 };
 export const globalStyles = StyleSheet.create({
-  // ... teus estilos atuais (screen, title, etc)
+  // Estilo base para as telas — garante um fundo consistente e padding horizontal
 
-    screen: { // <--- Vê se este nome está igual ao que usas no ecrã
+    screen: { 
     flex: 1,
     backgroundColor: '#91bedb',
     },
@@ -33,12 +33,12 @@ export const globalStyles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    elevation: 10,           // Prioridade no Android
+    elevation: 10, // Prioridade no Android
     zIndex: 100,            
     backgroundColor: '#d7cbcb',
     borderRadius: 25,
     height: 65,
-    borderTopWidth: 0,       // Remove a linha cinzenta padrão
+    borderTopWidth: 0, // Remove a linha cinzenta padrão
     
     // Sombra para iOS
     shadowColor: '#000',
@@ -52,11 +52,11 @@ export const globalStyles = StyleSheet.create({
     // Estas propriedades criam o efeito "pílula" flutuante
     position: 'absolute',
     bottom: 40,
-    marginTop: 20,          // Distância do fundo
-    left: 10,            // Margem esquerda
-    right: 10,           // Margem direita
-    height: 50,         // Altura da barra
-    borderRadius: 80,    // Valor alto para ser totalmente arredondado
+    marginTop: 20, // Distância do fundo
+    left: 10, // Margem esquerda
+    right: 10, // Margem direita
+    height: 50, // Altura da barra
+    borderRadius: 80, // Valor alto para ser totalmente arredondado
     
     // Alinhamento dos itens
     flexDirection: 'row',
@@ -65,7 +65,7 @@ export const globalStyles = StyleSheet.create({
     
     // Sombras (Shadows)
     elevation: 10,       // Sombra no Android
-    shadowColor: '#000', // Sombra no iOS
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

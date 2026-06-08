@@ -15,18 +15,18 @@ import { geocodeBatch, fetchNearbyMedicalCenters } from '../services/geocodingSe
 
 export default function MapScreen() {
   const { data, loading, error, hasSearched, params, focusedPin, setFocusedPin } = useSearch();
-  const { colors }        = useTheme();
+  const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
-  const styles            = createStyles(width, height, colors);
+  const styles = createStyles(width, height, colors);
 
   const [suggestedPins, setSuggestedPins] = useState<TutorPin[]>([]);
 
-  const [pins,        setPins]        = useState<TutorPin[]>([]);
-  const [geocoding,   setGeocoding]   = useState(false);
+  const [pins, setPins] = useState<TutorPin[]>([]);
+  const [geocoding, setGeocoding] = useState(false);
   const [selectedPin, setSelectedPin] = useState<TutorPin | null>(null);
 
-  const isFocused   = useIsFocused();
-  const mapRef      = useRef<MapView>(null);
+  const isFocused = useIsFocused();
+  const mapRef = useRef<MapView>(null);
   const cardAnim    = useRef(new Animated.Value(0)).current;
   const lastDataLen = useRef(0);
 
