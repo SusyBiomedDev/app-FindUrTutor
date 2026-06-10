@@ -14,7 +14,6 @@ const SavedScreen = () => {
   const renderItem = ({ item }: { item: SavedItem }) => (
     <CardItem
       item={item}
-      initialMarked={true}
       onToggleBookmark={() => toggleSaved(item)}
     />
   );

@@ -1,0 +1,16 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/Pods": true,
+    "**/android/build": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/Pods": true
+  },
+  "typescript.tsserver.watchOptions": {},
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "js/ts.implicitProjectConfig.checkJs": false,
+  "typescript.validate.enable": true,
+  "javascript.validate.enable": false
+}

@@ -3,8 +3,8 @@ import { View, Text, Switch, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 
 type Props = {
-  value: boolean;
-  onChange: (value: boolean) => void;
+  value: boolean;                 // estado atual do switch (ligado/desligado)
+  onChange: (value: boolean) => void; // callback chamado quando o utilizador altera o switch
 };
 
 export const LocationSwitch = ({ value, onChange }: Props) => {
@@ -12,9 +12,10 @@ export const LocationSwitch = ({ value, onChange }: Props) => {
 
   return (
     <View style={styles.container}>
+      {/* Switch nativo — cor da faixa muda conforme o tema e o estado */}
       <Switch
-        trackColor={{ false: "#767577", true: colors.primary }}
-        thumbColor={value ? "#fff" : "#f4f3f4"}
+        trackColor={{ false: '#767577', true: colors.primary }}
+        thumbColor={value ? '#fff' : '#f4f3f4'}
         onValueChange={onChange}
         value={value}
       />
@@ -23,7 +24,8 @@ export const LocationSwitch = ({ value, onChange }: Props) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-  text: { marginLeft: 10, fontWeight: 'bold', color: '#fff' },
+  text:      { marginLeft: 10, fontWeight: 'bold', color: '#fff' },
 });

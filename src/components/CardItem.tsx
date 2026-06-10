@@ -1,38 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  Linking, useWindowDimensions,
-} from 'react-native';
+import React from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Linking, useWindowDimensions,} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, AppColors } from '../context/ThemeContext';
 import { useSearch } from '../context/SearchContext';
-import { TutorPin } from '../types/tutor';
+import { useSaved } from '../context/SavedContext'; // ← adicionado
+import { TutorPin }  from '../types/tutor';
 
 interface CardItemProps {
-  item:              any;
-  initialMarked?:    boolean;
+  item: any;
   onToggleBookmark?: () => void;
 }
 
-const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookmark }) => {
-  const [isMarked, setIsMarked] = useState<boolean>(initialMarked || false);
-  const { width, height }       = useWindowDimensions();
-  const { colors }              = useTheme();
-  const styles                  = createStyles(width, height, colors);
-  const navigation              = useNavigation<any>();
-  const { setFocusedPin }       = useSearch();
+const CardItem: React.FC<CardItemProps> = ({ item, onToggleBookmark }) => {
+  const { savedItems } = useSaved(); // ← adicionado
 
-  useEffect(() => {
-    setIsMarked(initialMarked || false);
-  }, [initialMarked]);
+  // Deriva o estado do bookmark diretamente do SavedContext (fonte única de verdade).
+  // Assim fica sempre sincronizado, independentemente de onde o card é renderizado.
+  const isMarked = savedItems.some(saved => saved.id === item.id); // ← adicionado
+
+  const { width, height } = useWindowDimensions();
+  const { colors } = useTheme();
+  const styles = createStyles(width, height, colors);
+  const navigation = useNavigation<any>();
+  const { setFocusedPin } = useSearch();
 
   const handleBookmark = () => {
-    setIsMarked(!isMarked);
     if (onToggleBookmark) onToggleBookmark();
   };
 
-  // Open PubMed article
+  // Abre o artigo no PubMed: prefere PMID, usa DOI como fallback.
   const openPubMed = () => {
     const url = item.pmid
       ? `https://pubmed.ncbi.nlm.nih.gov/${item.pmid}`
@@ -42,34 +39,33 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
     if (url) Linking.openURL(url).catch(err => console.error('Error opening URL:', err));
   };
 
-  // Open email client
+  // Abre o cliente de email nativo.
   const openEmail = () => {
     if (item.email) Linking.openURL(`mailto:${item.email}`);
   };
 
-  // Open Google Maps with directions to affiliation
+  // Abre o Google Maps com direções para a afiliação do investigador.
+  // Remove o email da string da afiliação antes de usar como destino.
   const getDirections = () => {
-    const afiliacao = (item.afiliacao || item.Afiliacao || '').replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, '').trim();
-    const query     = encodeURIComponent(afiliacao || item.nome || '');
-    const url       = `https://www.google.com/maps/dir/?api=1&destination=${query}`;
-    Linking.openURL(url).catch(err => console.error('Error opening Maps:', err));
+    const afiliacao = (item.afiliacao || item.Afiliacao || '')
+      .replace(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, '')
+      .trim();
+    const query = encodeURIComponent(afiliacao || item.nome || '');
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${query}`)
+      .catch(err => console.error('Error opening Maps:', err));
   };
 
-  // Navigate to MapScreen and focus this pin
+  // Navega para o MapScreen e centra o mapa neste investigador.
   const viewOnMap = async () => {
-    // Geocode on the fly if we don't have coords yet
-    // For items from search results, we geocode in MapScreen already,
-    // so we pass the afiliacao and let MapScreen handle it.
-    // We store what we have and let MapScreen geocode if needed.
     const pin: TutorPin = {
-      id:        item.id,
-      nome:      item.nome,
-      area:      item.area,
-      email:     item.email,
+      id: item.id,
+      nome: item.nome,
+      area: item.area,
+      email: item.email,
       afiliacao: item.afiliacao || item.Afiliacao || '',
-      doi:       item.doi,
-      pmid:      item.pmid,
-      latitude:  item.latitude  ?? 0,
+      doi: item.doi,
+      pmid: item.pmid,
+      latitude: item.latitude  ?? 0,
       longitude: item.longitude ?? 0,
     };
     setFocusedPin(pin);
@@ -79,7 +75,6 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
   return (
     <View style={styles.card}>
 
-      {/* Header */}
       <View style={styles.cardHeader}>
         <TouchableOpacity
           style={styles.row}
@@ -91,7 +86,10 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
           <Text style={styles.seeMapText}>View on map</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleBookmark} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity
+          onPress={handleBookmark}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Icon
             name={isMarked ? 'bookmark' : 'bookmark-outline'}
             size={width * 0.06}
@@ -100,24 +98,20 @@ const CardItem: React.FC<CardItemProps> = ({ item, initialMarked, onToggleBookma
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
       <View style={styles.cardContent}>
         <Text style={styles.nameText}>{item.nome}</Text>
         <Text style={styles.areaText} numberOfLines={2}>{item.area}</Text>
 
-        {/* Email — tappable */}
         <TouchableOpacity style={styles.emailRow} onPress={openEmail}>
           <Icon name="email-outline" size={width * 0.05} color={colors.accent} />
           <Text style={styles.emailText}>{item.email}</Text>
         </TouchableOpacity>
 
-        {/* Directions */}
         <TouchableOpacity style={styles.directionsBtn} onPress={getDirections}>
           <Icon name="directions" size={width * 0.05} color={colors.accent} />
           <Text style={styles.directionText}>Get directions</Text>
         </TouchableOpacity>
 
-        {/* More details → PubMed */}
         <TouchableOpacity
           style={styles.moredetailsBtn}
           onPress={openPubMed}
@@ -145,76 +139,22 @@ const createStyles = (width: number, height: number, colors: AppColors) =>
       marginBottom:    height * 0.025,
     },
     cardHeader: {
-      flexDirection:     'row',
-      justifyContent:    'space-between',
-      alignItems:        'center',
-      borderBottomWidth: 0.5,
-      borderBottomColor: '#666',
-      paddingBottom:     height * 0.012,
-      marginBottom:      height * 0.012,
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+      borderBottomWidth: 0.5, borderBottomColor: '#666',
+      paddingBottom: height * 0.012, marginBottom: height * 0.012,
     },
-    row: {
-      flexDirection: 'row',
-      alignItems:    'center',
-    },
-    seeMapText: {
-      color:      colors.accent,
-      marginLeft: width * 0.02,
-      fontWeight: '600',
-      fontSize:   width * 0.038,
-    },
-    cardContent: {
-      marginTop: height * 0.006,
-    },
-    nameText: {
-      color:      colors.textOnCard,
-      fontSize:   width * 0.045,
-      fontWeight: 'bold',
-    },
-    areaText: {
-      color:     '#DDD',
-      fontSize:  width * 0.038,
-      marginTop: height * 0.005,
-      fontStyle: 'italic',
-    },
-    emailRow: {
-      flexDirection: 'row',
-      alignItems:    'center',
-      marginTop:     height * 0.012,
-    },
-    emailText: {
-      color:          colors.textOnCard,
-      marginLeft:     width * 0.02,
-      fontSize:       width * 0.035,
-      textDecorationLine: 'underline',
-    },
-    directionsBtn: {
-      flexDirection: 'row',
-      alignItems:    'center',
-      marginTop:     height * 0.012,
-    },
-    directionText: {
-      color:              colors.accent,
-      marginLeft:         width * 0.02,
-      fontSize:           width * 0.038,
-      fontWeight:         '600',
-      textDecorationLine: 'underline',
-    },
-    moredetailsBtn: {
-      marginTop:  height * 0.025,
-      alignSelf:  'flex-start',
-    },
-    moredetailsText: {
-      color:              colors.accent,
-      textDecorationLine: 'underline',
-      fontSize:           width * 0.04,
-      fontWeight:         '500',
-    },
-    disabledText: {
-      color:     colors.textMuted,
-      fontSize:  width * 0.035,
-      fontStyle: 'italic',
-    },
+    row:         { flexDirection: 'row', alignItems: 'center' },
+    seeMapText:  { color: colors.accent, marginLeft: width * 0.02, fontWeight: '600', fontSize: width * 0.038 },
+    cardContent: { marginTop: height * 0.006 },
+    nameText:    { color: colors.textOnCard, fontSize: width * 0.045, fontWeight: 'bold' },
+    areaText:    { color: '#DDD', fontSize: width * 0.038, marginTop: height * 0.005, fontStyle: 'italic' },
+    emailRow:    { flexDirection: 'row', alignItems: 'center', marginTop: height * 0.012 },
+    emailText:   { color: colors.textOnCard, marginLeft: width * 0.02, fontSize: width * 0.035, textDecorationLine: 'underline' },
+    directionsBtn: { flexDirection: 'row', alignItems: 'center', marginTop: height * 0.012 },
+    directionText: { color: colors.accent, marginLeft: width * 0.02, fontSize: width * 0.038, fontWeight: '600', textDecorationLine: 'underline' },
+    moredetailsBtn:  { marginTop: height * 0.025, alignSelf: 'flex-start' },
+    moredetailsText: { color: colors.accent, textDecorationLine: 'underline', fontSize: width * 0.04, fontWeight: '500' },
+    disabledText:    { color: colors.textMuted, fontSize: width * 0.035, fontStyle: 'italic' },
   });
 
 export default CardItem;
