@@ -23,7 +23,6 @@ const TableScreen = () => {
   const renderItem = ({ item }: { item: Tutor }) => (
     <CardItem
       item={item}
-      initialMarked={false}
       onToggleBookmark={() => toggleSaved(item)}
     />
   );
