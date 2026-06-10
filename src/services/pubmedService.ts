@@ -40,6 +40,8 @@ const xmlParser = new XMLParser({
   isArray: (name) =>
     ['PubmedArticle', 'Author', 'AffiliationInfo', 'ArticleId', 'ELocationID'].includes(name),
   textNodeName: '#text',
+  processEntities: true,   // ← garante que processa entidades
+  htmlEntities:    true,   // ← reconhece entidades HTML como &#xed;
 });
 
 
@@ -177,11 +179,11 @@ export async function extrairCorrespondingAuthors(
             seenEmails.add(email);
 
             resultados.push({
-              id: email, // o email é usado como ID único
+              id: email,
               Nome: authorName,
               Email: email,
               Título: title,
-              Afiliacao: affiliation,
+              Afiliacao: decodeHtml(affiliation),
               DOI: doi || undefined,
               PMID: pmid || undefined,
             });
